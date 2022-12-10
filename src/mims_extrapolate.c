@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "extrapolate.h"
-#include "helper.h"
+#include "mims_extrapolate.h"
+#include "mims_helper.h"
 
 static values_dataframe_t extrapolate_interpolate(int n, double *oversampled_float_timestamps, double *values,
                                                   double *marker, int points_ex_n, values_dataframe_t points_ex,

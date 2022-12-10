@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "helper.h"
+#include "mims_helper.h"
 #include "mims_unit.h"
 #include "trapz/trapz.h"
 

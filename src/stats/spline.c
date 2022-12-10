@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "stats_spline.h"
+#include "spline.h"
 
 static void natural_spline(int n, double *x, double *y, double *b, double *c, double *d)
 {

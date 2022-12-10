@@ -1,4 +1,4 @@
-#include "stats_smspline.h"
+#include "smspline.h"
 
 typedef struct
 {

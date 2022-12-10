@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "filter.h"
-#include "helper.h"
+#include "mims_filter.h"
+#include "mims_helper.h"
 
 // pass_type is always high (2)
 // filter type is always butter

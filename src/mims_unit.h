@@ -25,11 +25,11 @@ typedef enum time_unit
     day
 } time_unit_t;
 
-#include "aggregate.h"
-#include "combine_axes.h"
-#include "extrapolate.h"
-#include "filter.h"
-#include "helper.h"
+#include "mims_aggregate.h"
+#include "mims_combine_axes.h"
+#include "mims_extrapolate.h"
+#include "mims_filter.h"
+#include "mims_helper.h"
 
 #define max(a, b) \
     ({ __typeof__ (a) _a = (a); \

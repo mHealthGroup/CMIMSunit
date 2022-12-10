@@ -1,4 +1,4 @@
-#include "combine_axes.h"
+#include "mims_combine_axes.h"
 
 double *sum_up(dataframe_t *dataframe)
 {

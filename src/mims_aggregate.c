@@ -1,4 +1,4 @@
-#include "aggregate.h"
+#include "mims_aggregate.h"
 
 // note: run integrate_for_mims on each column (x, y, z) separately
 void integrate_for_mims(double *result, double *new_timestamps, int segments_n, int *segments,

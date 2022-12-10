@@ -1,4 +1,4 @@
-#include "signal_butter.h"
+#include "butter.h"
 
 transfer_t butter_coeffs(int order, int n_W, double *W, int pass_type, char plane)
 {

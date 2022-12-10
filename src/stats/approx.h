@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../helper.h"
+#include "../mims_helper.h"
 
 typedef struct
 {

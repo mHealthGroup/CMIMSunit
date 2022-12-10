@@ -4,10 +4,10 @@
 #include <stdlib.h>
 
 #include "mims_unit.h"
-#include "pgamma/stats_pgamma.h"
-#include "spline/stats_spline.h"
-#include "spline/stats_smspline.h"
-#include "approx/stats_approx.h"
+#include "stats/pgamma.h"
+#include "stats/spline.h"
+#include "stats/smspline.h"
+#include "stats/approx.h"
 
 #define max(a, b) \
     ({ __typeof__ (a) _a = (a); \

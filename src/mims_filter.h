@@ -4,8 +4,8 @@
 #include <stdlib.h>
 
 #include "mims_unit.h"
-#include "signal/butter/signal_butter.h"
-#include "signal/filter/signal_filter.h"
+#include "signal/butter.h"
+#include "signal/filter.h"
 
 dataframe_t iir(dataframe_t *df, int sampling_rate, double *cutoff_freq, int order);
 

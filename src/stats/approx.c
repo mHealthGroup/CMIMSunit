@@ -1,4 +1,4 @@
-#include "stats_approx.h"
+#include "approx.h"
 
 typedef struct
 {
