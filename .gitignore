@@ -1,5 +1,13 @@
+build/*
 data/*
 
-Makefile
 CMakeFiles/*
+src/CMakeFiles/*
+src/mims_unit
 *.cmake
+
+*.a
+*.bin
+*.d
+*.log
+*.o

@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libstats.a CMakeFiles/stats.dir/approx.c.o CMakeFiles/stats.dir/pgamma.c.o CMakeFiles/stats.dir/smspline.c.o CMakeFiles/stats.dir/spline.c.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib libstats.a

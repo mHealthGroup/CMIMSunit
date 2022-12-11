@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libsignal.a CMakeFiles/signal.dir/arma.c.o CMakeFiles/signal.dir/bilinear.c.o CMakeFiles/signal.dir/butter.c.o CMakeFiles/signal.dir/filter.c.o CMakeFiles/signal.dir/poly.c.o CMakeFiles/signal.dir/sftrans.c.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib libsignal.a

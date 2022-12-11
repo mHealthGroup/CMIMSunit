@@ -5,10 +5,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "mims_aggregate.h"
+#include "mims_combine_axes.h"
+#include "mims_extrapolate.h"
+#include "mims_filter.h"
+#include "mims_helper.h"
+
 typedef struct
 {
     int size;
-    double *timestamps; // dataframe "index", seconds w/ decimal milliseconds
+    double *timestamps; // seconds w/ decimal milliseconds
     int n_segments;
     int *segments;
     double *x;
@@ -24,12 +30,6 @@ typedef enum time_unit
     hour,
     day
 } time_unit_t;
-
-#include "mims_aggregate.h"
-#include "mims_combine_axes.h"
-#include "mims_extrapolate.h"
-#include "mims_filter.h"
-#include "mims_helper.h"
 
 #define max(a, b) \
     ({ __typeof__ (a) _a = (a); \
