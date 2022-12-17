@@ -3,14 +3,14 @@
 transfer_t butter_coeffs(int order, int n_W, double *W, int pass_type, char plane)
 {
     // def butter_coeffs(order, W, pass_type="low", plane="z")
-    bool stop = false;
-    bool digital = false;
+    uint8_t stop = 0;
+    uint8_t digital = 0;
     int i;
     double T;
     if (pass_type == 1 || pass_type == 2) // stop or high
-        stop = true;
+        stop = 1;
     if (plane == 'z')
-        digital = true;
+        digital = 1;
 
     // Prewarp to the band edges to s plane
     if (digital)

@@ -3,10 +3,9 @@
 
 #include <complex.h>
 #include <math.h>
-#include <stdbool.h>
 
 #include "arma.h"
 
-void sftrans(int n, zpg_t *zpg, int n_W, double *W, bool stop);
+void sftrans(int n, zpg_t *zpg, int n_W, double *W, uint8_t stop);
 
 #endif // _SFTRANS_H_

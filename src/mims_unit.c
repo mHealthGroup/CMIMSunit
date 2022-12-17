@@ -6,7 +6,7 @@ dataframe_t mims_unit(dataframe_t *dataframe,
                       int break_size, time_unit_t time_unit,
                       double noise_level, double k, double spar,
                       double cutoff_low, double cutoff_high,
-                      bool allow_truncation)
+                      uint8_t allow_truncation)
 {
   dataframe_t resampled_data = extrapolate(dataframe, dyanmic_range_low, dyanmic_range_high,
                                            noise_level, k, spar);
@@ -53,7 +53,7 @@ dataframe_t mims_unit(dataframe_t *dataframe,
 
   // Compute the AUC
   dataframe_t integrated_data = aggregate(&resampled_data, break_size, time_unit,
-                                          true, resampled_data.timestamps[0]);
+                                          1, resampled_data.timestamps[0]);
 
   // Truncate
   if (allow_truncation)
@@ -90,8 +90,8 @@ dataframe_t mims_unit(dataframe_t *dataframe,
 
 int main(int argc, char **argv)
 {
-  int n = 108000;
-  // int n = 2016000;
+  // int n = 108000;
+  int n = 2016000;
   // int m = 720;
 
   int got1, got2, got3, got4;
@@ -101,15 +101,15 @@ int main(int argc, char **argv)
   double *y = malloc(n * sizeof(double));
   double *z = malloc(n * sizeof(double));
   // int *segments = malloc(m * sizeof(int));
-  FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/timestamps.csv", "r");
-  FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/x.csv", "r");
-  FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/y.csv", "r");
-  FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/z.csv", "r");
+  // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/timestamps.csv", "r");
+  // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/x.csv", "r");
+  // FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/y.csv", "r");
+  // FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/z.csv", "r");
 
-  // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/timestamps.csv", "r");
-  // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/x.csv", "r");
-  // FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/y.csv", "r");
-  // FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/z.csv", "r");
+  FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/timestamps.csv", "r");
+  FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/x.csv", "r");
+  FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/y.csv", "r");
+  FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/z.csv", "r");
 
   // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/t.csv", "r");
   // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/x.csv", "r");
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
   input_df.z = z;
 
   clock_t begin = clock();
-  dataframe_t mims_data = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, true);
+  dataframe_t mims_data = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
   clock_t end = clock();
   double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 

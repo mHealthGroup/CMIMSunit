@@ -1,7 +1,6 @@
 #ifndef _MIMS_UNIT_H_
 #define _MIMS_UNIT_H_
 
-#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -46,6 +45,6 @@ dataframe_t mims_unit(dataframe_t *dataframe,
                       int break_size, time_unit_t time_unit,
                       double noise_level, double k, double spar,
                       double cutoff_low, double cutoff_high,
-                      bool allow_truncation);
+                      uint8_t allow_truncation);
 
 #endif // _MIMS_UNIT_H_

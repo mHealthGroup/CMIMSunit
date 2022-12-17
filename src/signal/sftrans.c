@@ -1,6 +1,6 @@
 #include "sftrans.h"
 
-void sftrans(int n, zpg_t *zpg, int n_W, double *W, bool stop)
+void sftrans(int n, zpg_t *zpg, int n_W, double *W, uint8_t stop)
 {
     int C = 1;
     int i;

@@ -2,7 +2,6 @@
 #define _STATS_SMSPLINE_H_
 
 #include <math.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,7 +15,7 @@ typedef struct
     double *data_x;
     double *data_y;
     double *data_w;
-    bool no_weights;
+    uint8_t no_weights;
     double *lev;
     double cv_crit;
     // double pen_crit;

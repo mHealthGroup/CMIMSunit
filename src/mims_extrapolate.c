@@ -1,5 +1,4 @@
 #include <math.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -261,11 +260,11 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
   // positive_left_end[~np.isnan(positive_left_end)]
   // positive_right_start[~np.isnan(positive_right_start)]
 
-  bool positive_right_start_lessthan_right_end = false;
+  uint8_t positive_right_start_lessthan_right_end = 0;
   for (int i = 0; i < min(positive_left_end_n, positive_right_start_n); i++)
     if (positive_right_start[i] < positive_left_end[i])
     {
-      positive_right_start_lessthan_right_end = true;
+      positive_right_start_lessthan_right_end = 1;
       break;
     }
 
@@ -357,11 +356,11 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
   // negative_left_end[~np.isnan(negative_left_end)]
   // negative_right_start[~np.isnan(negative_right_start)]
 
-  bool negative_right_start_lessthan_right_end = false;
+  uint8_t negative_right_start_lessthan_right_end = 0;
   for (int i = 0; i < min(negative_left_end_n, negative_right_start_n); i++)
     if (negative_right_start[i] < negative_left_end[i])
     {
-      negative_right_start_lessthan_right_end = true;
+      negative_right_start_lessthan_right_end = 1;
       break;
     }
 

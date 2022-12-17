@@ -3,7 +3,6 @@
 
 #include <complex.h>
 #include <math.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 double *signal_filter(int n_filt, double *filt, int n_a, double *a, int n_x, double *x);

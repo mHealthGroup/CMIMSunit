@@ -1,7 +1,6 @@
 #ifndef _AGGREGATE_H_
 #define _AGGREGATE_H_
 
-#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,6 +16,6 @@ typedef enum angle_unit
 } angle_unit_t;
 
 dataframe_t aggregate(dataframe_t *dataframe, int break_size, time_unit_t time_unit,
-                      bool rectify, double start_time);
+                      uint8_t rectify, double start_time);
 
 #endif // _AGGREGATE_H_

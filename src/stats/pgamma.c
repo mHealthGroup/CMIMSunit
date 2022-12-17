@@ -1,5 +1,4 @@
 #include <math.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -1039,7 +1038,7 @@ double dpois_raw(double x, double lambda, int log_p)
     double yh, yl;
     ebd0(x, lambda, &yh, &yl);
     yl += stirlerr(x);
-    bool Lrg_x = (x >= x_LRG); // really large x  <==>  2*pi*x  overflows
+    uint8_t Lrg_x = (x >= x_LRG); // really large x  <==>  2*pi*x  overflows
     double r = Lrg_x
                    ? M_SQRT_2PI * sqrt(x) // sqrt(.): avoid overflow for very large x
                    : M_2PI * x;
@@ -1408,7 +1407,7 @@ dpnorm(double x, int lower_tail, double lp)
     }
     else
     {
-        double d = dnorm(x, 0., 1., false);
+        double d = dnorm(x, 0., 1., 0);
         return d / exp(lp);
     }
 }

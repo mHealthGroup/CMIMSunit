@@ -7,7 +7,7 @@ typedef struct
     double tol;
     double eps;
     int maxit;
-    bool trace;
+    uint8_t trace;
 } contr_sp_t;
 
 typedef struct
@@ -112,8 +112,8 @@ int py_idx_1(int num_rows, int row_num, int col_num)
 }
 
 int findInterval2(double *xt, int n, double x,
-                  bool rightmost_closed, bool all_inside,
-                  bool left_open, // <- new in findInterval2()
+                  uint8_t rightmost_closed, uint8_t all_inside,
+                  uint8_t left_open, // <- new in findInterval2()
                   int ilo, int *mflag)
 {
     int istep, middle, ihi;
@@ -261,14 +261,14 @@ L51: // left_open
 
 // has been in API -- keep for compatibility:
 int findInterval(double *xt, int n, double x,
-                 bool rightmost_closed, bool all_inside, int ilo,
+                 uint8_t rightmost_closed, uint8_t all_inside, int ilo,
                  int *mflag)
 {
-    return findInterval2(xt, n, x, rightmost_closed, all_inside, false, ilo, mflag);
+    return findInterval2(xt, n, x, rightmost_closed, all_inside, 0, ilo, mflag);
 }
 
 int interv(double *xt, int n, double x,
-           bool rightmost_closed, bool all_inside,
+           uint8_t rightmost_closed, uint8_t all_inside,
            int ilo, int *mflag)
 {
     return findInterval(xt, n, x, rightmost_closed, all_inside, ilo, mflag);
@@ -294,7 +294,7 @@ void bsplvb(double *t, int lent, int jhigh, int index, double x, int left, doubl
             return;
     }
 
-    while (true)
+    while (1)
     {
         int jp1 = *j + 1;
         deltar[*j - 1] = t[left + *j - 1] - x;
@@ -1165,8 +1165,8 @@ void sbart(int *penalt, int *dofoff,
     double tol1, tol2;
 
     int i, maxit;
-    // bool Fparabol = FALSE, tracing = (*ispar < 0),
-    bool spar_is_lambda = false;
+    // uint8_t Fparabol = FALSE, tracing = (*ispar < 0),
+    uint8_t spar_is_lambda = 0;
 
     /* unnecessary initializations to keep  -Wall happy */
     d = 0.;
@@ -1194,7 +1194,7 @@ void sbart(int *penalt, int *dofoff,
             ws[i] = sqrt(ws[i]);
 
     if (*isetup < 0)
-        spar_is_lambda = true;
+        spar_is_lambda = 1;
     else if (*isetup != 1)
     { // 0 or 2
         /* SIGMA[i,j] := Int  B''(i,t) B''(j,t) dt  {B(k,.) = k-th B-spline} */
@@ -1465,9 +1465,9 @@ smooth_spline_model_t SmSplineCoef(int n, double *x, double *y, int w_len, doubl
     contr_sp.tol = 1e-4;
     contr_sp.eps = 2e-8;
     contr_sp.maxit = 500;
-    contr_sp.trace = false;
+    contr_sp.trace = 0;
 
-    bool no_wgts = (w_len == 0);
+    uint8_t no_wgts = (w_len == 0);
     if (no_wgts)
     {
         w = malloc(n * sizeof(double));
@@ -1497,7 +1497,7 @@ smooth_spline_model_t SmSplineCoef(int n, double *x, double *y, int w_len, doubl
     // Assume all x unique
     double *ux = x;
     int nx = n;
-    bool ox = true;
+    uint8_t ox = 1;
     // double tmp[n][3];
     // for (i = 0; i < n; i++)
     // {
@@ -1508,12 +1508,12 @@ smooth_spline_model_t SmSplineCoef(int n, double *x, double *y, int w_len, doubl
     double *wbar = w;
 
     double *ybar = malloc(n * sizeof(double));
-    bool wbar_all_positive = true;
+    uint8_t wbar_all_positive = 1;
     for (i = 0; i < n; i++)
     {
         if (wbar[i] <= 0)
         {
-            wbar_all_positive = false;
+            wbar_all_positive = 0;
             break;
         }
     }
@@ -1574,7 +1574,7 @@ smooth_spline_model_t SmSplineCoef(int n, double *x, double *y, int w_len, doubl
     int nk = nknots + 2;
 
     // spar stuff
-    int spar_is_lambda = 0; // false
+    int spar_is_lambda = 0; // 0
     int ispar = 1;
 
     // icrit stuff
@@ -1656,7 +1656,7 @@ smooth_spline_model_t SmSplineCoef(int n, double *x, double *y, int w_len, doubl
     smooth_spline_model_t model;
     if (fit.ier[0] > 0)
     {
-        bool sml = fit.spar < 0.5;
+        uint8_t sml = fit.spar < 0.5;
         if (spar_is_lambda || sml)
         {
             return model;
@@ -1695,7 +1695,7 @@ smooth_spline_model_t SmSplineCoef(int n, double *x, double *y, int w_len, doubl
     model.data_x = x;            // double *data_x;     n
     model.data_y = y;            // double *data_y;     n
     model.data_w = w;            // double *data_w;     n
-    model.no_weights = no_wgts;  // bool no_weights;
+    model.no_weights = no_wgts;  // uint8_t no_weights;
     model.lev = lev;             // double *lev;        nx
     model.cv_crit = cv_crit;     // double cv_crit;
     model.crit = fit.crit;       // double* crit;

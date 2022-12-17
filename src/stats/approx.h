@@ -2,7 +2,6 @@
 #define _STATS_APPROX_H_
 
 #include <math.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 

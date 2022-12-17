@@ -3,7 +3,7 @@
 // note: run integrate_for_mims on each column (x, y, z) separately
 void integrate_for_mims(double *result, double *new_timestamps, int segments_n, int *segments,
                         int n, double *float_timestamps, double *values, int n_threshold,
-                        bool rectify)
+                        uint8_t rectify)
 {
   int segment_start_i, segment_end_i, segment_length, max_values;
   int result_i = 0;
@@ -48,7 +48,7 @@ void integrate_for_mims(double *result, double *new_timestamps, int segments_n, 
 }
 
 dataframe_t aggregate(dataframe_t *dataframe, int break_size, time_unit_t time_unit,
-                      bool rectify, double start_time)
+                      uint8_t rectify, double start_time)
 {
   // parse input argument epoch
   segment_data(dataframe, break_size, time_unit, start_time);
@@ -60,15 +60,15 @@ dataframe_t aggregate(dataframe_t *dataframe, int break_size, time_unit_t time_u
   double *x_results = malloc(dataframe->n_segments * sizeof(double));
   double *new_timestamps = malloc(dataframe->n_segments * sizeof(double));
   integrate_for_mims(x_results, new_timestamps, dataframe->n_segments, dataframe->segments,
-                     dataframe->size, dataframe->timestamps, dataframe->x, n_threshold, true);
+                     dataframe->size, dataframe->timestamps, dataframe->x, n_threshold, 1);
 
   double *y_results = malloc(dataframe->n_segments * sizeof(double));
   integrate_for_mims(y_results, new_timestamps, dataframe->n_segments, dataframe->segments,
-                     dataframe->size, dataframe->timestamps, dataframe->y, n_threshold, true);
+                     dataframe->size, dataframe->timestamps, dataframe->y, n_threshold, 1);
 
   double *z_results = malloc(dataframe->n_segments * sizeof(double));
   integrate_for_mims(z_results, new_timestamps, dataframe->n_segments, dataframe->segments,
-                     dataframe->size, dataframe->timestamps, dataframe->z, n_threshold, true);
+                     dataframe->size, dataframe->timestamps, dataframe->z, n_threshold, 1);
 
   dataframe_t new_dataframe;
   new_dataframe.size = dataframe->n_segments;
