@@ -73,28 +73,12 @@ int sequence_length(double start, double stop, double step)
     return (int)(((stop - start) / step) + pow(1, -10));
 }
 
-// double *sequence(double start, double stop, double step)
-// {
-//     int sequence_len = sequence_length(start, stop, step);
-//     double *sequence = malloc(sequence_len * sizeof(double));
-
-//     double current = start;
-//     for (int i = 0; i < sequence_len; i++)
-//     {
-//         sequence[i] = current;
-//         current += step;
-//     }
-
-//     return sequence;
-// }
-
 double *sequence(double start, double stop, double step)
 {
     int sequence_len = sequence_length(start, stop, step);
     double *sequence = malloc(sequence_len * sizeof(double));
 
     sequence[0] = start;
-    // sequence[sequence_len - 1] = stop;
     for (int i = 1; i < sequence_len; i++)
     {
         sequence[i] = start + (double)(i * step);
