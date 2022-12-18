@@ -21,21 +21,21 @@
 
 typedef struct edges
 {
-    int n_left;
-    int n_right;
-    int *left_start;
-    int *left_end;
-    int *right_start;
-    int *right_end;
+    uint16_t n_left;
+    uint16_t n_right;
+    uint32_t *left_start;
+    uint32_t *left_end;
+    uint32_t *right_start;
+    uint32_t *right_end;
 } edges_t;
 
 typedef struct values_dataframe
 {
-    int size;
+    uint32_t size;
     double *timestamps;
     double *values;
 } values_dataframe_t;
 
-dataframe_t extrapolate(dataframe_t *df, double r_low, double r_high, double noise_level, double k, double spar);
+dataframe_t extrapolate(dataframe_t *df, int8_t r_low, int8_t r_high, float noise_level, float k, float spar);
 
 #endif // _EXTRAPOLATE_H_

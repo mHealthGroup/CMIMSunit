@@ -7,11 +7,11 @@
 
 // pass_type is always high (2)
 // filter type is always butter
-dataframe_t iir(dataframe_t *df, int sampling_rate, double *cutoff_freq, int order)
+dataframe_t iir(dataframe_t *df, uint16_t sampling_rate, double *cutoff_freq, uint8_t order)
 {
-  int cutoff_freq_n = 2;
-  double nyquist = (double)sampling_rate / 2.0;
-  for (int i = 0; i < cutoff_freq_n; i++)
+  uint8_t cutoff_freq_n = 2;
+  float nyquist = (float)sampling_rate / 2.0;
+  for (uint8_t i = 0; i < cutoff_freq_n; i++)
     cutoff_freq[i] = cutoff_freq[i] / nyquist;
 
   transfer_t coeffs = butter_coeffs(order, cutoff_freq_n, cutoff_freq, 3, 'z');

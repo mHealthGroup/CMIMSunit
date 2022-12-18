@@ -7,6 +7,6 @@
 #include "signal/butter.h"
 #include "signal/filter.h"
 
-dataframe_t iir(dataframe_t *df, int sampling_rate, double *cutoff_freq, int order);
+dataframe_t iir(dataframe_t *df, uint16_t sampling_rate, double *cutoff_freq, uint8_t order);
 
 #endif // _FILTER_H_

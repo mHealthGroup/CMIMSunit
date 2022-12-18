@@ -1,22 +1,21 @@
 #include "mims_unit.h"
-#include <time.h>
 
 dataframe_t mims_unit(dataframe_t *dataframe,
-                      int dyanmic_range_low, int dyanmic_range_high,
-                      int break_size, time_unit_t time_unit,
-                      double noise_level, double k, double spar,
-                      double cutoff_low, double cutoff_high,
+                      int8_t dyanmic_range_low, int8_t dyanmic_range_high,
+                      uint16_t break_size, time_unit_t time_unit,
+                      float noise_level, float k, float spar,
+                      float cutoff_low, float cutoff_high,
                       uint8_t allow_truncation)
 {
   dataframe_t resampled_data = extrapolate(dataframe, dyanmic_range_low, dyanmic_range_high,
                                            noise_level, k, spar);
 
   // removed the extrapolated_data
-  int sampling_rate = get_sampling_rate(&resampled_data);
+  uint16_t sampling_rate = get_sampling_rate(&resampled_data);
 
   // store abnormal values separately
-  int n_normal_data = 0;
-  for (int i = 0; i < resampled_data.size; i++)
+  uint32_t n_normal_data = 0;
+  for (uint32_t i = 0; i < resampled_data.size; i++)
     if (!(resampled_data.x[i] < -150 || resampled_data.y[i] < -150 || resampled_data.z[i] < -150))
       n_normal_data += 1;
 
@@ -26,9 +25,9 @@ dataframe_t mims_unit(dataframe_t *dataframe,
       .y = malloc(n_normal_data * sizeof(double)),
       .z = malloc(n_normal_data * sizeof(double))};
 
-  int *normal_rows = malloc(n_normal_data * sizeof(int));
-  int normal_rows_i = 0;
-  for (int i = 0; i < resampled_data.size; i++)
+  uint32_t *normal_rows = malloc(n_normal_data * sizeof(uint32_t));
+  uint32_t normal_rows_i = 0;
+  for (uint32_t i = 0; i < resampled_data.size; i++)
     if (!(resampled_data.x[i] < -150 || resampled_data.y[i] < -150 || resampled_data.z[i] < -150))
     {
       normal_rows[normal_rows_i] = i;
@@ -44,7 +43,7 @@ dataframe_t mims_unit(dataframe_t *dataframe,
   dataframe_t filtered_data = iir(&normal_dataframe, sampling_rate, cutoff_freq, 4);
 
   // write filtered_data back into resampled_data rows
-  for (int i = 0; i < n_normal_data; i++)
+  for (uint32_t i = 0; i < n_normal_data; i++)
   {
     resampled_data.x[normal_rows[i]] = filtered_data.x[i];
     resampled_data.y[normal_rows[i]] = filtered_data.y[i];
@@ -58,7 +57,7 @@ dataframe_t mims_unit(dataframe_t *dataframe,
   // Truncate
   if (allow_truncation)
   {
-    for (int i = 0; i < integrated_data.size; i++)
+    for (uint32_t i = 0; i < integrated_data.size; i++)
     {
       if (integrated_data.x[i] > 0 &&
           integrated_data.x[i] <= (1e-04 * parse_epoch_string(break_size, time_unit, sampling_rate)))
@@ -76,7 +75,7 @@ dataframe_t mims_unit(dataframe_t *dataframe,
 
   integrated_data.mims_data = sum_up(&integrated_data);
 
-  for (int i = 0; i < integrated_data.size; i++)
+  for (uint32_t i = 0; i < integrated_data.size; i++)
     if (integrated_data.x[i] < 0 || integrated_data.y[i] < 0 || integrated_data.z[i] < 0)
     {
       integrated_data.x[i] = -0.01;
@@ -139,6 +138,7 @@ int main(int argc, char **argv)
   input_df.y = y;
   input_df.z = z;
 
+#include <time.h>
   clock_t begin = clock();
   dataframe_t mims_data = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
   clock_t end = clock();

@@ -5,18 +5,18 @@
 #include "mims_extrapolate.h"
 #include "mims_helper.h"
 
-static values_dataframe_t extrapolate_interpolate(int n, double *oversampled_float_timestamps, double *values,
-                                                  double *marker, int points_ex_n, values_dataframe_t points_ex,
-                                                  int sampling_rate, double confident)
+static values_dataframe_t extrapolate_interpolate(uint32_t n, double *oversampled_float_timestamps, double *values,
+                                                  double *marker, uint16_t points_ex_n, values_dataframe_t points_ex,
+                                                  uint16_t sampling_rate, float confident)
 {
-  int length_t_mark = 0;
-  for (int i = 0; i < n; i++)
+  uint32_t length_t_mark = 0;
+  for (uint32_t i = 0; i < n; i++)
     if (fabs(marker[i]) < confident)
       length_t_mark += 1;
 
-  int j = 0;
-  int *mark_it = malloc(length_t_mark * sizeof(int));
-  for (int i = 0; i < n; i++)
+  uint32_t j = 0;
+  uint32_t *mark_it = malloc(length_t_mark * sizeof(uint32_t));
+  for (uint32_t i = 0; i < n; i++)
     if (fabs(marker[i]) < confident)
     {
       mark_it[j] = i;
@@ -39,9 +39,9 @@ static values_dataframe_t extrapolate_interpolate(int n, double *oversampled_flo
     // assume dat.timestamps and points_ex.timestamps both sorted
     // mergesort into dat.timestamps
     double timestamp, value;
-    int k = 0;
+    uint32_t k = 0;
     j = 0;
-    for (int i = 0; i < dat.size; i++)
+    for (uint32_t i = 0; i < dat.size; i++)
     {
       if (
           (j < length_t_mark) &&
@@ -65,59 +65,15 @@ static values_dataframe_t extrapolate_interpolate(int n, double *oversampled_flo
 
   free(mark_it);
 
-  int t_interp_n = sequence_length(dat.timestamps[0], dat.timestamps[dat.size - 1], 1.0 / sampling_rate);
+  uint32_t t_interp_n = sequence_length(dat.timestamps[0], dat.timestamps[dat.size - 1], 1.0 / sampling_rate);
   double *t_interp = sequence(dat.timestamps[0], dat.timestamps[dat.size - 1], 1.0 / sampling_rate);
-
-  // DELETE ---------------------
-  int test_n, got1;
-  FILE *t_file, *v_file;
-
-  // test_n = 359997;
-  // t_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extra_inter_spline_output/t.csv", "r");
-  // t_interp_n = test_n;
-  // free(t_interp);
-  // t_interp = malloc(test_n * sizeof(double));
-  // for (int i = 0; i < test_n; i++)
-  // {
-  //   got1 = fscanf(t_file, "%lf", &t_interp[i]);
-  //   if (got1 != 1)
-  //     break; // wrong number of tokens - maybe end of file
-  //   if (t_interp[i] != 0)
-  //     continue;
-  // }
-  // fclose(t_file);
-  // ---------------------
 
   // fmm spline
   double *dat_output = Spline(dat.size, dat.timestamps, dat.size, dat.values, t_interp_n, t_interp, 3);
 
-  // DELETE ---------------------
-
-  // v_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/c/extra_inter_spline_output/v.csv", "w+");
-  // for (int i = 0; i < t_interp_n; i++)
-  // {
-  //   fprintf(v_file, "%lf\n", dat_output[i]);
-  // }
-  // fclose(v_file);
-
-  test_n = 359997;
-  // free(dat_output);
-  // dat_output = malloc(test_n * sizeof(double));
-  // v_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extra_inter_spline_output/v.csv", "r");
-  // for (int i = 0; i < test_n; i++)
-  // {
-  //   got1 = fscanf(v_file, "%lf", &dat_output[i]);
-  //   if (got1 != 1)
-  //     break; // wrong number of tokens - maybe end of file
-  //   if (dat_output[i] != 0)
-  //     continue;
-  // }
-  // fclose(v_file);
-  // ---------------------
-
   // Remove nan values from dat_output
-  int non_nan_dat_output_n = 0;
-  for (int i = 0; i < t_interp_n; i++)
+  uint32_t non_nan_dat_output_n = 0;
+  for (uint32_t i = 0; i < t_interp_n; i++)
   {
     if (!isnan(dat_output[i]))
       non_nan_dat_output_n += 1;
@@ -127,8 +83,8 @@ static values_dataframe_t extrapolate_interpolate(int n, double *oversampled_flo
   {
     double *temp_dat_output = malloc(non_nan_dat_output_n * sizeof(double));
     double *temp_t_interp = malloc(non_nan_dat_output_n * sizeof(double));
-    int j = 0;
-    for (int i = 0; i < t_interp_n; i++)
+    uint32_t j = 0;
+    for (uint32_t i = 0; i < t_interp_n; i++)
     {
       if (!isnan(dat_output[i]))
       {
@@ -146,8 +102,6 @@ static values_dataframe_t extrapolate_interpolate(int n, double *oversampled_flo
   // Return
   values_dataframe_t dat_df;
   dat_df.size = t_interp_n;
-  // for (int i = 0; i < t_interp_n; i++)
-  //   t_interp[i] = t_interp[i] * pow(10, 9);
   free(dat.timestamps);
   free(dat.values);
   dat_df.timestamps = t_interp;
@@ -156,14 +110,14 @@ static values_dataframe_t extrapolate_interpolate(int n, double *oversampled_flo
   return dat_df;
 }
 
-static edges_t extrapolate_edges(int n, double *marker, double confident, double sampling_rate)
+static edges_t extrapolate_edges(uint32_t n, double *marker, float confident, double sampling_rate)
 {
   double *marker_diff_left = malloc(n * sizeof(double));
   double *marker_diff_right = malloc(n * sizeof(double));
 
-  int positive_left_end_n, positive_right_start_n, negative_left_end_n, negative_right_start_n;
+  uint32_t positive_left_end_n, positive_right_start_n, negative_left_end_n, negative_right_start_n;
   positive_left_end_n = positive_right_start_n = negative_left_end_n = negative_right_start_n = 0;
-  for (int i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++)
   {
     if (i < n - 1)
       marker_diff_left[i + 1] = marker_diff_right[i] = marker[i + 1] - marker[i];
@@ -183,8 +137,8 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
 
   // hills
   double *positive_left_end = malloc(positive_left_end_n * sizeof(double));
-  int j;
-  for (int i = 0; i < n; i++)
+  uint32_t j;
+  for (uint32_t i = 0; i < n; i++)
   {
     if ((marker_diff_left[i] > confident) && (marker[i] > 0))
     {
@@ -195,7 +149,7 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
 
   double *positive_right_start = malloc(positive_right_start_n * sizeof(double));
   j = 0;
-  for (int i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++)
   {
     if ((marker_diff_right[i] < -confident) && (marker[i] > 0))
     {
@@ -204,7 +158,7 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
     }
   }
 
-  double threshold_maxedout = sampling_rate * 5;
+  float threshold_maxedout = sampling_rate * 5;
   if (positive_left_end_n - positive_right_start_n == 1)
   {
 
@@ -261,7 +215,7 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
   // positive_right_start[~np.isnan(positive_right_start)]
 
   uint8_t positive_right_start_lessthan_right_end = 0;
-  for (int i = 0; i < min(positive_left_end_n, positive_right_start_n); i++)
+  for (uint32_t i = 0; i < min(positive_left_end_n, positive_right_start_n); i++)
     if (positive_right_start[i] < positive_left_end[i])
     {
       positive_right_start_lessthan_right_end = 1;
@@ -282,7 +236,7 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
   // valleys
   double *negative_left_end = malloc(negative_left_end_n * sizeof(double));
   j = 0;
-  for (int i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++)
   {
     if ((marker_diff_left[i] < -confident) && (marker[i] < 0))
     {
@@ -293,7 +247,7 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
 
   double *negative_right_start = malloc(negative_right_start_n * sizeof(double));
   j = 0;
-  for (int i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++)
   {
     if ((marker_diff_right[i] > confident) && (marker[i] < 0))
     {
@@ -357,7 +311,7 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
   // negative_right_start[~np.isnan(negative_right_start)]
 
   uint8_t negative_right_start_lessthan_right_end = 0;
-  for (int i = 0; i < min(negative_left_end_n, negative_right_start_n); i++)
+  for (uint32_t i = 0; i < min(negative_left_end_n, negative_right_start_n); i++)
     if (negative_right_start[i] < negative_left_end[i])
     {
       negative_right_start_lessthan_right_end = 1;
@@ -380,8 +334,8 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
 
   edges_t edges;
   edges.n_left = positive_left_end_n + negative_left_end_n;
-  edges.left_end = malloc(edges.n_left * sizeof(int));
-  for (int i = 0; i < edges.n_left; i++)
+  edges.left_end = malloc(edges.n_left * sizeof(uint32_t));
+  for (uint16_t i = 0; i < edges.n_left; i++)
   {
     if (i < positive_left_end_n)
       edges.left_end[i] = positive_left_end[i];
@@ -392,8 +346,8 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
   free(negative_left_end);
 
   edges.n_right = positive_right_start_n + negative_right_start_n;
-  edges.right_start = malloc(edges.n_right * sizeof(int));
-  for (int i = 0; i < edges.n_right; i++)
+  edges.right_start = malloc(edges.n_right * sizeof(uint32_t));
+  for (uint16_t i = 0; i < edges.n_right; i++)
   {
     if (i < positive_right_start_n)
       edges.right_start[i] = positive_right_start[i];
@@ -407,39 +361,39 @@ static edges_t extrapolate_edges(int n, double *marker, double confident, double
   return edges;
 }
 
-static edges_t extrapolate_neighbor(int n, double *marker, double sampling_rate, double k, double confident)
+static edges_t extrapolate_neighbor(uint32_t n, double *marker, double sampling_rate, float k, float confident)
 {
-  int n_neighbor = (int)(k * sampling_rate);
+  uint16_t n_neighbor = (uint16_t)(k * sampling_rate);
   edges_t edges = extrapolate_edges(n, marker, confident, sampling_rate);
 
   if (edges.n_left > 0)
   {
-    edges.left_start = malloc(edges.n_left * sizeof(int));
-    for (int i = 0; i < edges.n_left; i++)
+    edges.left_start = malloc(edges.n_left * sizeof(uint32_t));
+    for (uint16_t i = 0; i < edges.n_left; i++)
       edges.left_start[i] = (edges.left_end[i] == -1) ? -1 : max(edges.left_end[i] - n_neighbor + 1, 1);
   }
 
   if (edges.n_right > 0)
   {
-    edges.right_end = malloc(edges.n_right * sizeof(int));
-    for (int i = 0; i < edges.n_right; i++)
+    edges.right_end = malloc(edges.n_right * sizeof(uint32_t));
+    for (uint16_t i = 0; i < edges.n_right; i++)
       edges.right_end[i] = (edges.right_start[i] == -1) ? -1 : min(edges.right_start[i] + n_neighbor - 1, n);
   }
 
   return edges;
 }
 
-static smooth_spline_model_t fit_weighted(int n, double *oversampled_float_timestamps, double *values,
-                                          double *marker, int start, int end, double spar,
-                                          int sampling_rate, double k)
+static smooth_spline_model_t fit_weighted(uint32_t n, double *oversampled_float_timestamps, double *values,
+                                          double *marker, uint32_t start, uint32_t end, float spar,
+                                          uint16_t sampling_rate, float k)
 {
-  int n_over = k * sampling_rate;
+  uint16_t n_over = k * sampling_rate;
 
-  int n_sub = end - start + 1;
+  uint32_t n_sub = end - start + 1;
   double *sub_timestamps = malloc(n_sub * sizeof(double));
   double *sub_values = malloc(n_sub * sizeof(double));
   double *sub_weights = malloc(n_sub * sizeof(double));
-  for (int i = 0; i < n_sub; i++)
+  for (uint32_t i = 0; i < n_sub; i++)
   {
     sub_timestamps[i] = oversampled_float_timestamps[start + i];
     sub_values[i] = values[start + i];
@@ -456,8 +410,9 @@ static smooth_spline_model_t fit_weighted(int n, double *oversampled_float_times
   return SmSplineCoef(n_over, over_t, over_value, n_over, weight, spar);
 }
 
-static values_dataframe_t extrapolate_fit(int n, double *oversampled_float_timestamps, double *values, edges_t neighbors,
-                                          double *marker, double spar, int sampling_rate, double k)
+static values_dataframe_t extrapolate_fit(uint32_t n, double *oversampled_float_timestamps, double *values,
+                                          edges_t neighbors, double *marker, double spar, uint16_t sampling_rate,
+                                          double k)
 {
   // assuming neighbors.n_left == neighbors.n_right
   double *middle_ts = malloc(neighbors.n_left * sizeof(double));
@@ -467,7 +422,7 @@ static values_dataframe_t extrapolate_fit(int n, double *oversampled_float_times
   smooth_spline_model_t fitted_right;
   double *left_ex, *right_ex, *middle_t, point_ex, start_time, left_end, right_start;
   middle_t = malloc(sizeof(double));
-  for (int i = 0; i < neighbors.n_left; i++)
+  for (uint16_t i = 0; i < neighbors.n_left; i++)
   {
     fitted_left = fit_weighted(n, oversampled_float_timestamps, values, marker,
                                neighbors.left_start[i], neighbors.left_end[i],
@@ -502,15 +457,15 @@ static double optimize_gamma(double value)
   double start = 0.5;
   double stop = 0.001;
   double step = -0.001;
-  // int n = (int)((0.001 - 0.5) / -0.001) + 1;
-  int n = sequence_length(0.5, 0.001, -0.001);
+
+  uint32_t n = sequence_length(0.5, 0.001, -0.001);
   double *arr = sequence(0.5, 0.001, -0.001);
 
   double ii, current;
   double result = 0;
   double previous = 1.0;
   double previous_ii = 0.0;
-  for (int i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++)
   {
     ii = arr[i];
     current = pgamma(value, ii, 1.0);
@@ -525,8 +480,8 @@ static double optimize_gamma(double value)
   return result;
 }
 
-static double *mark_gamma(int n, double *timestamps, double *values, double range_low, double range_high,
-                          double noise_sd)
+static double *mark_gamma(uint32_t n, double *timestamps, double *values, int8_t range_low, int8_t range_high,
+                          float noise_sd)
 {
   double *marker = calloc(n, sizeof(double));
 
@@ -535,7 +490,7 @@ static double *mark_gamma(int n, double *timestamps, double *values, double rang
   double shape = optimize_gamma(3.0 * noise_sd);
 
   // mark using gamma distribution
-  for (int i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++)
   {
     if (values[i] >= 0)
       marker[i] = pgamma(values[i] - (range_high - 5.0 * noise_sd), shape, 1.0);
@@ -546,11 +501,11 @@ static double *mark_gamma(int n, double *timestamps, double *values, double rang
   return marker;
 }
 
-static values_dataframe_t extrapolate_single_col(int n, double *timestamps, double *values,
-                                                 double r_low, double r_high, double noise_level, double k, double spar)
+static values_dataframe_t extrapolate_single_col(uint32_t n, double *timestamps, double *values,
+                                                 int8_t r_low, int8_t r_high, float noise_level, float k, float spar)
 {
 
-  int oversampled_float_timestamps_n = sequence_length(timestamps[0], timestamps[n - 1], 0.01);
+  uint32_t oversampled_float_timestamps_n = sequence_length(timestamps[0], timestamps[n - 1], 0.01);
   double *oversampled_float_timestamps = sequence(timestamps[0], timestamps[n - 1], 0.01);
 
   // method = natural
@@ -585,7 +540,7 @@ static values_dataframe_t extrapolate_single_col(int n, double *timestamps, doub
   return dat_interp;
 }
 
-dataframe_t extrapolate(dataframe_t *df, double r_low, double r_high, double noise_level, double k, double spar)
+dataframe_t extrapolate(dataframe_t *df, int8_t r_low, int8_t r_high, float noise_level, float k, float spar)
 {
   dataframe_t result;
   values_dataframe_t x_col = extrapolate_single_col(df->size, df->timestamps, df->x, r_low, r_high, noise_level, k, spar);

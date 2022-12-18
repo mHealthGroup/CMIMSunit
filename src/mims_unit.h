@@ -4,12 +4,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// uint8_t (255)
+// uint16_t (65535)
+// uint32_t (4294967295)
+// uint64_t (18446744073709551615)
+
 typedef struct
 {
-    int size;
+    uint32_t size;
     double *timestamps; // seconds w/ decimal milliseconds
-    int n_segments;
-    int *segments;
+    uint16_t n_segments;
+    uint16_t *segments;
     double *x;
     double *y;
     double *z;
@@ -41,10 +46,10 @@ typedef enum time_unit
      _a < _b ? _a : _b; })
 
 dataframe_t mims_unit(dataframe_t *dataframe,
-                      int dyanmic_range_low, int dyanmic_range_high,
-                      int break_size, time_unit_t time_unit,
-                      double noise_level, double k, double spar,
-                      double cutoff_low, double cutoff_high,
+                      int8_t dyanmic_range_low, int8_t dyanmic_range_high,
+                      uint16_t break_size, time_unit_t time_unit,
+                      float noise_level, float k, float spar,
+                      float cutoff_low, float cutoff_high,
                       uint8_t allow_truncation);
 
 #endif // _MIMS_UNIT_H_

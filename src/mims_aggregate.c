@@ -1,23 +1,25 @@
 #include "mims_aggregate.h"
 
 // note: run integrate_for_mims on each column (x, y, z) separately
-void integrate_for_mims(double *result, double *new_timestamps, int segments_n, int *segments,
-                        int n, double *float_timestamps, double *values, int n_threshold,
-                        uint8_t rectify)
+static void integrate_for_mims(double *result, double *new_timestamps, uint16_t n_segments,
+                               uint16_t *segments, uint32_t n, double *float_timestamps, double *values,
+                               uint32_t n_threshold, uint8_t rectify)
 {
-  int segment_start_i, segment_end_i, segment_length, max_values;
-  int result_i = 0;
+  uint16_t segment_start_i, segment_end_i, segment_length;
+  uint32_t max_values, result_i;
+
+  result_i = 0;
   double auc_value;
-  for (int segment_i = 0; segment_i < segments_n; segment_i++)
+  for (uint16_t segment_i = 0; segment_i < n_segments; segment_i++)
   {
     segment_start_i = segments[segment_i];
-    segment_end_i = (segment_i == (segments_n - 1)) ? n : segments[segment_i + 1];
+    segment_end_i = (segment_i == (n_segments - 1)) ? n : segments[segment_i + 1];
     segment_length = segment_end_i - segment_start_i;
 
     if (segment_length >= (0.9 * n_threshold))
     {
       if (rectify) // absolute values for values > constant
-        for (int j = segment_start_i; j < segment_end_i; j++)
+        for (uint16_t j = segment_start_i; j < segment_end_i; j++)
           values[j] = (values[j] > -150) ? fabs(values[j]) : -200;
 
       // select different methods for integration
@@ -47,15 +49,15 @@ void integrate_for_mims(double *result, double *new_timestamps, int segments_n, 
   return;
 }
 
-dataframe_t aggregate(dataframe_t *dataframe, int break_size, time_unit_t time_unit,
+dataframe_t aggregate(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit,
                       uint8_t rectify, double start_time)
 {
   // parse input argument epoch
   segment_data(dataframe, break_size, time_unit, start_time);
 
   // get the number of samples in each epoch
-  int sampling_rate = get_sampling_rate(dataframe);
-  int n_threshold = parse_epoch_string(break_size, time_unit, sampling_rate);
+  uint16_t sampling_rate = get_sampling_rate(dataframe);
+  uint32_t n_threshold = parse_epoch_string(break_size, time_unit, sampling_rate);
 
   double *x_results = malloc(dataframe->n_segments * sizeof(double));
   double *new_timestamps = malloc(dataframe->n_segments * sizeof(double));

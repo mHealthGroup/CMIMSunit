@@ -1,8 +1,8 @@
 #include "mims_helper.h"
 
-int get_break_size_in_seconds(int break_size, time_unit_t time_unit)
+uint32_t get_break_size_in_seconds(uint16_t break_size, time_unit_t time_unit)
 {
-    int factor;
+    uint32_t factor;
     switch (time_unit)
     {
     case second:
@@ -19,29 +19,29 @@ int get_break_size_in_seconds(int break_size, time_unit_t time_unit)
         break;
     }
 
-    int break_size_in_seconds = break_size * factor;
+    uint32_t break_size_in_seconds = break_size * factor;
     return break_size_in_seconds;
 }
 
-int parse_epoch_string(int break_size, time_unit_t time_unit, int sampling_rate)
+uint32_t parse_epoch_string(uint16_t break_size, time_unit_t time_unit, uint16_t sampling_rate)
 {
-    int num_seconds_in_epoch = (int)get_break_size_in_seconds(break_size, time_unit);
-    int num_samples = num_seconds_in_epoch * sampling_rate;
+    uint32_t num_seconds_in_epoch = get_break_size_in_seconds(break_size, time_unit);
+    uint32_t num_samples = num_seconds_in_epoch * sampling_rate;
     return num_samples;
 }
 
-int get_sampling_rate(dataframe_t *dataframe)
+uint16_t get_sampling_rate(dataframe_t *dataframe)
 {
-    int duration_in_seconds = (int)(dataframe->timestamps[dataframe->size - 1] - dataframe->timestamps[0]);
-    int sampling_rate = dataframe->size / duration_in_seconds;
+    uint32_t duration_in_seconds = (uint32_t)(dataframe->timestamps[dataframe->size - 1] - dataframe->timestamps[0]);
+    uint16_t sampling_rate = dataframe->size / duration_in_seconds;
     return sampling_rate;
 }
 
 static void compute_time_segments(
-    dataframe_t *dataframe, double start_time, double break_size_in_seconds)
+    dataframe_t *dataframe, double start_time, uint32_t break_size_in_seconds)
 {
-    dataframe->n_segments = (int)((dataframe->timestamps[dataframe->size - 1] - start_time) / break_size_in_seconds) + 1;
-    dataframe->segments = malloc(dataframe->n_segments * sizeof(int));
+    dataframe->n_segments = (uint16_t)((dataframe->timestamps[dataframe->size - 1] - start_time) / (double)break_size_in_seconds) + 1;
+    dataframe->segments = malloc(dataframe->n_segments * sizeof(uint16_t));
 
     int segment_i = 0;
     int last_break_index = 0;
@@ -58,43 +58,42 @@ static void compute_time_segments(
 }
 
 // Segments the input sensor dataframe into epoch windows with length specified in break_size.
-// Mutates
-void segment_data(dataframe_t *dataframe, int break_size, time_unit_t time_unit, double start_time)
+void segment_data(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit, double start_time)
 {
-    double break_size_in_seconds = (double)get_break_size_in_seconds(break_size, time_unit);
-
+    uint32_t break_size_in_seconds = get_break_size_in_seconds(break_size, time_unit);
     compute_time_segments(dataframe, start_time, break_size_in_seconds);
-
     return;
 }
 
-int sequence_length(double start, double stop, double step)
+uint32_t sequence_length(double start, double stop, double step)
 {
-    return (int)(((stop - start) / step) + pow(1, -10));
+    return (uint32_t)(((stop - start) / step) + pow(1, -10));
 }
 
 double *sequence(double start, double stop, double step)
 {
-    int sequence_len = sequence_length(start, stop, step);
+    uint32_t sequence_len = sequence_length(start, stop, step);
     double *sequence = malloc(sequence_len * sizeof(double));
 
     sequence[0] = start;
-    for (int i = 1; i < sequence_len; i++)
+    for (uint32_t i = 1; i < sequence_len; i++)
     {
         sequence[i] = start + (double)(i * step);
     }
+
     return sequence;
 }
 
-double *linspace(double start, double stop, int n)
+double *linspace(double start, double stop, uint32_t n)
 {
     double *sequence = malloc(n * sizeof(double));
     double step = (stop - start) / (double)(n - 1.0);
     double current = start;
-    for (int i = 0; i < n; i++)
+    for (uint32_t i = 0; i < n; i++)
     {
         sequence[i] = current;
         current += step;
     }
+
     return sequence;
 }
