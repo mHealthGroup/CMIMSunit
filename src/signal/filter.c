@@ -2,43 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-FILE *output_fp;
-
-static void print_clear()
-{
-    output_fp = fopen("c_output.txt", "w");
-    fprintf(output_fp, "");
-    fclose(output_fp);
-}
-
-static void print(char *s)
-{
-    output_fp = fopen("c_output.txt", "a");
-    fprintf(output_fp, "%s", s);
-    fclose(output_fp);
-}
-
-static void print_float(float x)
-{
-    output_fp = fopen("c_output.txt", "a");
-    fprintf(output_fp, "%f\n", x);
-    fclose(output_fp);
-}
-
-static void print_float_prec(float x)
-{
-    output_fp = fopen("c_output.txt", "a");
-    fprintf(output_fp, "%.30f\n", x);
-    fclose(output_fp);
-}
-
-static void print_int(int x)
-{
-    output_fp = fopen("c_output.txt", "a");
-    fprintf(output_fp, "%d\n", x);
-    fclose(output_fp);
-}
-
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 

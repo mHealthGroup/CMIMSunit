@@ -59,7 +59,6 @@ weights = np.array(
 py_fitted = smooth_spline_model(x=over_t, y=over_values, w=weights, spar=spar)["fit"]
 py_results = predict_smooth_spline(py_fitted, over_t)["y"]
 
-print("shit")
 # Load the shared library into ctypes
 # stats_smspline_lib = ctypes.CDLL(
 #     "/Users/arytonhoi/Kode/mhealth/pymims/planning/C/spline/stats_smspline.so"

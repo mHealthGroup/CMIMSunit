@@ -407,7 +407,7 @@ static smooth_spline_model_t fit_weighted(uint32_t n, double *oversampled_float_
   double *over_value = sp.y;
   double *weight = weights.y;
 
-  return SmSplineCoef(n_over, over_t, over_value, n_over, weight, spar);
+  return sm_spline_coef(n_over, over_t, over_value, n_over, weight, spar);
 }
 
 static values_dataframe_t extrapolate_fit(uint32_t n, double *oversampled_float_timestamps, double *values,

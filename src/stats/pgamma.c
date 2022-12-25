@@ -1,13 +1,8 @@
+// Taken from https://github.com/wch/r-source/blob/79298c499218846d14500255efd622b5021c10ec/src/nmath/pgamma.c
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-// #include "nmath.h"
-// #include "dpq.h"
-/*----------- DEBUGGING -------------
- * make CFLAGS='-DDEBUG_p -g'
- * (cd `R-devel RHOME`/src/nmath; gcc -I. -I../../src/include -I../../../R/src/include  -DHAVE_CONFIG_H -fopenmp -DDEBUG_p -g -c ../../../R/src/nmath/pgamma.c -o pgamma.o)
- */
 
 /* Scalefactor:= (2^32)^8 = 2^256 = 1.157921e+77 */
 #define SQR(x) ((x) * (x))
@@ -898,31 +893,13 @@ void ebd0(double x, double M, double *yh, double *yl)
     // now,  0 <= i <= N
     double f = floor(S / (0.5 + i / (2.0 * N)) + 0.5);
     double fg = ldexp(f, -(e + Sb)); // ldexp(f, E) := f * 2^E
-#ifdef DEBUG_bd0
-    REprintf("ebd0(x=%g, M=%g): M/x = (r=%.15g) * 2^(e=%d); i=%d,\n  f=%g, fg=f*2^-(e+%d)=%g\n",
-             x, M, r, e, i, f, Sb, fg);
-    if (fg == ML_POSINF)
-    {
-        REprintf(" --> fg = +Inf --> return( +Inf )\n");
-        *yh = fg;
-        return;
-    }
-    REprintf("     bd0_sc[0][0..3]= (");
-    for (int j = 0; j < 4; j++)
-        REprintf("%g ", bd0_scale[0][j]);
-    REprintf(")\n");
-    REprintf("i -> bd0_sc[i][0..3]= (");
-    for (int j = 0; j < 4; j++)
-        REprintf("%g ", bd0_scale[i][j]);
-    REprintf(")\n");
-    REprintf("  small(?)  (M*fg-x)/x = (M*fg)/x - 1 = %.16g\n", (M * fg - x) / x);
-#else
+
     if (fg == ML_POSINF)
     {
         *yh = fg;
         return;
     }
-#endif
+
     /* We now have (M * fg / x) close to 1.  */
 
     /*
@@ -954,37 +931,6 @@ void ebd0(double x, double M, double *yh, double *yl)
         *yl += d2;                            \
     } while (0)
 
-#ifdef DEBUG_bd0
-    {
-        double log1__ = log1pmx((M * fg - x) / x),
-               xl = -x * log1__;
-        REprintf(" 1a. before adding  -x * log1pmx(.) = -x * %g = %g\n", log1__, xl);
-        ADD1(xl);
-        REprintf(" 1. after A.(-x*l..):       yl,yh = (%13g, %13g); yl+yh= %g\n",
-                 *yl, *yh, (*yl) + (*yh));
-    }
-    if (fg == 1)
-    {
-        REprintf("___ fg = 1 ___ skipping further steps\n");
-        return;
-    }
-    // else  [ fg != 1 ]
-    REprintf(" 2:  A(x*b[i,j]) and A(-x*e*b[0,j]), j=1:4:\n");
-    for (int j = 0; j < 4; j++)
-    {
-        ADD1(x * bd0_scale[i][j]); // handles  x*log(fg*2^e)
-        REprintf(" j=%d: (%13g, %13g);", j, *yl, *yh);
-        ADD1(-x * bd0_scale[0][j] * e); // handles  x*log(1/ 2^e)
-        REprintf(" (%13g, %13g); yl+yh= %g\n", *yl, *yh, (*yl) + (*yh));
-        if (!R_FINITE(*yh))
-        {
-            REprintf(" non-finite yh --> return((yh=Inf, yl=0))\n");
-            *yh = ML_POSINF;
-            *yl = 0;
-            return;
-        }
-    }
-#else
     ADD1(-x * log1pmx((M * fg - x) / x));
     if (fg == 1)
         return;
@@ -1001,16 +947,8 @@ void ebd0(double x, double M, double *yh, double *yl)
             return;
         }
     }
-#endif
 
     ADD1(M);
-#ifdef DEBUG_bd0
-    REprintf(" 3. after ADD1(M):            yl,yh = (%13g, %13g); yl+yh= %g\n", *yl, *yh, (*yl) + (*yh));
-#endif
-    ADD1(-M * fg);
-#ifdef DEBUG_bd0
-    REprintf(" 4. after ADD1(- M*fg):       yl,yh = (%13g, %13g); yl+yh= %g\n\n", *yl, *yh, (*yl) + (*yh));
-#endif
 }
 
 double dpois_raw(double x, double lambda, int log_p)
@@ -1055,11 +993,7 @@ double dpois_raw(double x, double lambda, int log_p)
 static double
 dpois_wrap(double x_plus_1, double lambda, int log_p)
 {
-// #define R_D__0 (log_p ? ML_NEGINF : 0.)
-#ifdef DEBUG_p
-    REprintf(" dpois_wrap(x+1=%.14g, lambda=%.14g, log=%d)\n",
-             x_plus_1, lambda, log_p);
-#endif
+    // #define R_D__0 (log_p ? ML_NEGINF : 0.)
     if (!R_FINITE(lambda))
         return (log_p ? ML_NEGINF : 0.);
     if (x_plus_1 > 1)
@@ -1069,9 +1003,7 @@ dpois_wrap(double x_plus_1, double lambda, int log_p)
     else
     {
         double d = dpois_raw(x_plus_1, lambda, log_p);
-#ifdef DEBUG_p
-        REprintf("  -> d=dpois_raw(..)=%.14g\n", d);
-#endif
+
         return log_p
                    ? d + log(x_plus_1 / lambda)
                    : d * (x_plus_1 / lambda);
@@ -1086,10 +1018,6 @@ pgamma_smallx(double x, double alph, int lower_tail, int log_p)
 {
     double sum = 0, c = alph, n = 0, term;
 
-#ifdef DEBUG_p
-    REprintf(" pg_smallx(x=%.12g, alph=%.12g): ", x, alph);
-#endif
-
     /*
      * Relative to 6.5.29 all terms have been multiplied by alph
      * and the first, thus being 1, is omitted.
@@ -1103,9 +1031,6 @@ pgamma_smallx(double x, double alph, int lower_tail, int log_p)
         sum += term;
     } while (fabs(term) > DBL_EPSILON * fabs(sum));
 
-#ifdef DEBUG_p
-    REprintf("%5.0f terms --> conv.sum=%g;", n, sum);
-#endif
     if (lower_tail)
     {
         double f1 = log_p ? log1p(sum) : 1 + sum;
@@ -1119,19 +1044,13 @@ pgamma_smallx(double x, double alph, int lower_tail, int log_p)
             f2 = alph * log(x) - lgamma1p(alph);
         else
             f2 = pow(x, alph) / exp(lgamma1p(alph));
-#ifdef DEBUG_p
-        REprintf(" (f1,f2)= (%g,%g)\n", f1, f2);
-#endif
+
         return log_p ? f1 + f2 : f1 * f2;
     }
     else
     {
         double lf2 = alph * log(x) - lgamma1p(alph);
-#ifdef DEBUG_p
-        REprintf(" 1:%.14g  2:%.14g\n", alph * log(x), lgamma1p(alph));
-        REprintf(" sum=%.14g  log(1+sum)=%.14g	 lf2=%.14g\n",
-                 sum, log1p(sum), lf2);
-#endif
+
         if (log_p)
             return R_Log1_Exp(log1p(sum) + lf2);
         else
@@ -1185,9 +1104,6 @@ pd_lower_cf(double y, double d)
 
 #define max_it 200000
 
-#ifdef DEBUG_p
-    REprintf("pd_lower_cf(y=%.14g, d=%.14g)", y, d);
-#endif
     if (y == 0)
         return 0;
 
@@ -1195,9 +1111,7 @@ pd_lower_cf(double y, double d)
     /* Needed, e.g. for  pgamma(10^c(100,295), shape= 1.1, log=TRUE): */
     if (fabs(y - 1) < fabs(d) * DBL_EPSILON)
     { /* includes y < d = Inf */
-#ifdef DEBUG_p
-        REprintf(" very small 'y' -> returning (y/d)\n");
-#endif
+
         return (f0);
     }
 
@@ -1243,9 +1157,6 @@ pd_lower_cf(double y, double d)
                 /* convergence check: relative; "absolute" for very small f : */
                 if (fabs(f - of) <= DBL_EPSILON * fmax2(f0, fabs(f)))
                 {
-#ifdef DEBUG_p
-                    REprintf(" %g iter.\n", i);
-#endif
                     return f;
                 }
                 of = f;
@@ -1262,9 +1173,6 @@ pd_lower_series(double lambda, double y)
 {
     double term = 1, sum = 0;
 
-#ifdef DEBUG_p
-    REprintf("pd_lower_series(lam=%.14g, y=%.14g) ...", lambda, y);
-#endif
     while (y >= 1 && term > sum * DBL_EPSILON)
     {
         term *= y / lambda;
@@ -1275,9 +1183,6 @@ pd_lower_series(double lambda, double y)
      *	   =  y/lambda * (1 + \sum_{n=1}^Inf  (y-1)*...*(y-n) / lambda^n)
      *	   ~  y/lambda + o(y/lambda)
      */
-#ifdef DEBUG_p
-    REprintf(" done: term=%g, sum=%g, y= %g\n", term, sum, y);
-#endif
 
     if (y != floor(y))
     {
@@ -1286,15 +1191,9 @@ pd_lower_series(double lambda, double y)
          * bigger (besides flipping sign) for y < -lambda.
          */
         double f;
-#ifdef DEBUG_p
-        REprintf(" y not int: add another term ");
-#endif
         /* FIXME: in quite few cases, adding  term*f  has no effect (f too small)
          *	  and is unnecessary e.g. for pgamma(4e12, 121.1) */
         f = pd_lower_cf(y, lambda + 1 - y);
-#ifdef DEBUG_p
-        REprintf("  (= %.14g) * term = %.14g to sum %g\n", f, term * f, sum);
-#endif
         sum += term * f;
     }
 
@@ -1727,9 +1626,6 @@ static double ppois_asymp(double x, double lambda, int lower_tail, int log_p)
     }
     if (!lower_tail)
         elfb = -elfb;
-#ifdef DEBUG_p
-    REprintf("res12 = %.14g   elfb=%.14g\n", elfb, res12);
-#endif
 
     f = res12 / elfb;
 
@@ -1738,20 +1634,11 @@ static double ppois_asymp(double x, double lambda, int lower_tail, int log_p)
     if (log_p)
     {
         double n_d_over_p = dpnorm(s2pt, !lower_tail, np);
-#ifdef DEBUG_p
-        REprintf("pp*_asymp(): f=%.14g	 np=e^%.14g  nd/np=%.14g  f*nd/np=%.14g\n",
-                 f, np, n_d_over_p, f * n_d_over_p);
-#endif
         return np + log1p(f * n_d_over_p);
     }
     else
     {
         double nd = dnorm(s2pt, 0., 1., log_p);
-
-#ifdef DEBUG_p
-        REprintf("pp*_asymp(): f=%.14g	 np=%.14g  nd=%.14g  f*nd=%.14g\n",
-                 f, np, nd, f * nd);
-#endif
         return np + f * nd;
     }
 } /* ppois_asymp() */
@@ -1761,11 +1648,6 @@ double pgamma_raw(double x, double alph, int lower_tail, int log_p)
     /* Here, assume that  (x,alph) are not NA  &  alph > 0 . */
 
     double res;
-
-#ifdef DEBUG_p
-    REprintf("pgamma_raw(x=%.14g, alph=%.14g, low=%d, log=%d)\n",
-             x, alph, lower_tail, log_p);
-#endif
 
 #define R_P_bounds_01(x, x_min, x_max) \
     if (x <= x_min)                    \
@@ -1783,10 +1665,7 @@ double pgamma_raw(double x, double alph, int lower_tail, int log_p)
         /* incl. large alph compared to x */
         double sum = pd_upper_series(x, alph, log_p); /* = x/alph + o(x/alph) */
         double d = dpois_wrap(alph, x, log_p);
-#ifdef DEBUG_p
-        REprintf(" alph 'large': sum=pd_upper*()= %.12g, d=dpois_w(*)= %.12g\n",
-                 sum, d);
-#endif
+
         if (!lower_tail)
             res = log_p
                       ? R_Log1_Exp(d + sum)
@@ -1799,9 +1678,7 @@ double pgamma_raw(double x, double alph, int lower_tail, int log_p)
         /* incl. large x compared to alph */
         double sum;
         double d = dpois_wrap(alph, x, log_p);
-#ifdef DEBUG_p
-        REprintf(" x 'large': d=dpois_w(*)= %.14g ", d);
-#endif
+
         if (alph < 1)
         {
             if (x * DBL_EPSILON > 1 - alph)
@@ -1818,9 +1695,6 @@ double pgamma_raw(double x, double alph, int lower_tail, int log_p)
             sum = pd_lower_series(x, alph - 1); /* = (alph-1)/x + o((alph-1)/x) */
             sum = log_p ? log1p(sum) : 1 + sum;
         }
-#ifdef DEBUG_p
-        REprintf(", sum= %.14g\n", sum);
-#endif
         if (!lower_tail)
             res = log_p ? sum + d : sum * d;
         else
@@ -1830,9 +1704,6 @@ double pgamma_raw(double x, double alph, int lower_tail, int log_p)
     }
     else
     { /* x >= 1 and x fairly near alph. */
-#ifdef DEBUG_p
-        REprintf(" using ppois_asymp()\n");
-#endif
         res = ppois_asymp(alph - 1, x, !lower_tail, log_p);
     }
 
@@ -1844,16 +1715,12 @@ double pgamma_raw(double x, double alph, int lower_tail, int log_p)
     if (!log_p && res < DBL_MIN / DBL_EPSILON)
     {
         /* with(.Machine, double.xmin / double.eps) #|-> 1.002084e-292 */
-#ifdef DEBUG_p
-        REprintf(" very small res=%.14g; -> recompute via log\n", res);
-#endif
         return exp(pgamma_raw(x, alph, lower_tail, 1));
     }
     else
         return res;
 }
 
-// double pgamma(double x, double alph, double scale, int lower_tail, int log_p)
 double pgamma(double x, double alph, double scale)
 {
     int lower_tail = 1;
@@ -1874,54 +1741,3 @@ double pgamma(double x, double alph, double scale)
         return (x <= 0) ? R_DT_0 : R_DT_1; /* <= assert  pgamma(0,0) ==> 0 */
     return pgamma_raw(x, alph, lower_tail, log_p);
 }
-
-// int main(int argc, char **argv)
-// {
-//     int n = 16;
-//     int scale = 1;
-//     double value = 0.09003;
-//     double ii_array[16] = {
-//         0.5,
-//         0.499,
-//         0.498,
-//         0.497,
-//         0.496,
-//         0.495,
-//         0.494,
-//         0.493,
-//         0.492,
-//         0.491,
-//         0.49,
-//         0.029999999999999583,
-//         0.02899999999999958,
-//         0.02799999999999958,
-//         0.02699999999999958,
-//         0.02599999999999958,
-//     };
-
-//     // outputs
-//     // 0.3286783174350519
-//     // 0.32949562845163105
-//     // 0.3303146801026452
-//     // 0.3311354750251889
-//     // 0.3319580158561066
-//     // 0.3327823052319722
-//     // 0.3336083457890651
-//     // 0.3344361401633487
-//     // 0.335265690990448
-//     // 0.33609700090562594
-//     // 0.33693007254376117
-//     // 0.9434533749837254
-//     // 0.9453054237989911
-//     // 0.947159762335827
-//     // 0.9490163881141457
-//     // 0.95087529862528
-
-//     double result;
-//     int i;
-//     for (i = 0; i < n; i++)
-//     {
-//         result = pgamma(value, ii_array[i], 1, 1, 0);
-//     }
-//     return 0;
-// }

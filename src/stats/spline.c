@@ -5,10 +5,7 @@
 static void natural_spline(int n, double *x, double *y, double *b, double *c, double *d)
 {
     if (n < 2)
-    {
-        printf("natural_spline n < 2");
         return;
-    }
 
     x--;
     y--;
@@ -182,25 +179,8 @@ static void spline_coef(int method, int n, double *x, double *y,
     }
 }
 
-// TODO Create struct for return type (equivalent of python dict)
 static Z_struct_t SplineCoef(int method, int n, double *x, int m, double *y)
 {
-    // x = PROTECT(coerceVector(x, REALSXP));
-    // y = PROTECT(coerceVector(y, REALSXP));
-    // R_xlen_t n = XLENGTH(x);
-    // int method = asInteger(method);
-
-    if (m != n)
-    {
-        printf("Error: inputs of different lengths");
-    }
-
-    // ans, nm;
-    // b = PROTECT(allocVector(REALSXP, n));
-    // c = PROTECT(allocVector(REALSXP, n));
-    // d = PROTECT(allocVector(REALSXP, n));
-    // double *rb = REAL(b), *rc = REAL(c), *rd = REAL(d);
-
     double *b = malloc(n * sizeof(double));
     double *c = malloc(n * sizeof(double));
     double *d = malloc(n * sizeof(double));
@@ -211,23 +191,6 @@ static Z_struct_t SplineCoef(int method, int n, double *x, int m, double *y)
 
     spline_coef(method, n, x, y, b, c, d);
 
-    FILE *fpt;
-    fpt = fopen("/Users/arytonhoi/Kode/mhealth/pymims/planning/C/spline/spline_coef.csv", "w+");
-    fprintf(fpt, "b, c, d\n");
-    for (int i = 0; i < n; i++)
-    {
-        fprintf(fpt, "%.10f, %.10f, %.10f\n", b[i], c[i], d[i]);
-    }
-    fclose(fpt);
-
-    // // ans = PROTECT(allocVector(VECSXP, 7));
-    // // SET_VECTOR_ELT(ans, 0, ScalarInteger(method));
-    // // SET_VECTOR_ELT(ans, 1, (n > INT_MAX) ? ScalarReal((double)n) : ScalarInteger((int)n));
-    // // SET_VECTOR_ELT(ans, 2, x);
-    // // SET_VECTOR_ELT(ans, 3, y);
-    // // SET_VECTOR_ELT(ans, 4, b);
-    // // SET_VECTOR_ELT(ans, 5, c);
-    // // SET_VECTOR_ELT(ans, 6, d);
     Z_struct_t ans;
     ans.method = method;
     ans.n = n;
@@ -236,17 +199,6 @@ static Z_struct_t SplineCoef(int method, int n, double *x, int m, double *y)
     ans.b = b;
     ans.c = c;
     ans.d = d;
-
-    // // nm = allocVector(STRSXP, 7);
-    // // setAttrib(ans, R_NamesSymbol, nm);
-    // // SET_STRING_ELT(nm, 0, mkChar("method"));
-    // // SET_STRING_ELT(nm, 1, mkChar("n"));
-    // // SET_STRING_ELT(nm, 2, mkChar("x"));
-    // // SET_STRING_ELT(nm, 3, mkChar("y"));
-    // // SET_STRING_ELT(nm, 4, mkChar("b"));
-    // // SET_STRING_ELT(nm, 5, mkChar("c"));
-    // // SET_STRING_ELT(nm, 6, mkChar("d"));
-    // // UNPROTECT(6);
 
     return ans;
 }
@@ -306,24 +258,11 @@ static void spline_eval(int method, int nu, double *u, double *v,
 
 static double *SplineEval(int nu, double *xout, Z_struct_t z)
 {
-    // xout = PROTECT(coerceVector(xout, REALSXP));
-    // R_xlen_t nu = XLENGTH(xout)
-
-    // nx = asXlen(getListElement(z, "n"));
     int nx = z.n;
 
-    // SEXP yout = PROTECT(allocVector(REALSXP, nu));
     double *yout = malloc(nu * sizeof(double));
-
-    // int method = asInteger(getListElement(z, "method"));
-    // SEXP x = getListElement(z, "x"), y = getListElement(z, "y"),
-    //      b = getListElement(z, "b"), c = getListElement(z, "c"),
-    //      d = getListElement(z, "d");
-    // spline_eval(method, nu, REAL(xout), REAL(yout),
-    //             nx, REAL(x), REAL(y), REAL(b), REAL(c), REAL(d));
     spline_eval(z.method, nu, xout, yout, nx, z.x, z.y, z.b, z.c, z.d);
 
-    // UNPROTECT(2);
     return yout;
 }
 
@@ -334,19 +273,5 @@ double *Spline(int x_len, double *x, int y_len, double *y,
     Z_struct_t z = SplineCoef(method, x_len, x, y_len, y);
     double *yout = SplineEval(xout_len, xout, z);
 
-    // FILE *fpt;
-    // fpt = fopen("/Users/arytonhoi/Kode/mhealth/pymims/planning/C/spline/spline_eval.csv", "w+");
-    // fprintf(fpt, "x, y\n");
-    // for (int i = 0; i < xout_len; i++)
-    // {
-    //     fprintf(fpt, "%f, %.15f\n", xout[i], yout[i]);
-    // }
-    // fclose(fpt);
-
     return yout;
 }
-
-// int main(int argc, char **argv)
-// {
-//     return 0;
-// }

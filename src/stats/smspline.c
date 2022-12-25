@@ -23,23 +23,24 @@ typedef struct
     double *scrtch;
 } fit_t;
 
-static double iqr(double *x) // TODO
+static double iqr(int n, double *x)
 {
-    return 1;
+    float index[2] = {1 + (n - 1) * 0.25, 1 + (n - 1) * 0.75};
+    int lo[2] = {(int)floor(index[0]), (int)floor(index[1])};
+    int hi[2] = {(int)ceil(index[0]), (int)ceil(index[1])};
+
+    double qs[2] = {x[lo[0]], x[lo[1]]};
+
+    // R code, probably unreached
+    // i <- which(index > lo)
+    // h <- (index - lo)[i] # > 0	by construction
+    // qs[i] <- (1 - h) * qs[i] + h * x[hi[i]]
+
+    return qs[1] - qs[0];
 }
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
-// double *unique(double *x) // TODO or assume all x unique
-// {
-//     return x;
-// }
-
-// static double log2(double x)
-// {
-//     return log(x) / log(2.0);
-// }
 
 static int _nknots_smspl(int n)
 {
@@ -1199,11 +1200,6 @@ void sbart(int *penalt, int *dofoff,
     { // 0 or 2
         /* SIGMA[i,j] := Int  B''(i,t) B''(j,t) dt  {B(k,.) = k-th B-spline} */
 
-        // int idx;
-        // print("\n\n sg0\n");
-        // for (idx = 0; idx < nk; idx++)
-        //     print_float(sg0[idx]);
-
         sgram(sg0, sg1, sg2, sg3, knot, nk, &j, deltal, deltar);
         stxwx(xs, ys, ws, n,
               knot, nk,
@@ -1454,10 +1450,10 @@ static void rbart(
     return;
 }
 
-smooth_spline_model_t SmSplineCoef(int n, double *x, double *y, int w_len, double *w, double spar)
+smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar)
 {
     int i;
-    double tol = 1e-6 * iqr(x);
+    double tol = 1e-6 * iqr(n, x);
 
     contr_sp_t contr_sp;
     contr_sp.low = -1.5;
@@ -1872,7 +1868,9 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
 //         1.600546460300313889035805914318189024925231933593750000000000000000000000000000000000000000,
 //     };
 
-//     smooth_spline_model_t *model = SplineCoef(n, over_t, over_values, n, weights, spar);
-//     double *results = predict_smooth_spline(*model, over_t, n, 0);
+//     // smooth_spline_model_t model = sm_spline_coef(n, over_t, over_values, n, weights, spar);
+//     // double *results = predict_smooth_spline(model, over_t, n, 0);
+
+//     double iqr_result = iqr(5, over_t);
 //     return 0;
 // }
