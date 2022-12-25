@@ -73,7 +73,7 @@ static void R_approxfun(double *x, double *y, uint32_t nxy,
 static double *C_Approx(double *x, double *y, uint32_t nxy, double *xout, uint32_t nout, uint8_t method,
                         double yleft, double yright, double f, uint8_t na_rm)
 {
-    double *yout = calloc(nout, sizeof(double));
+    double *yout = malloc(nout * sizeof(double));
     R_approxfun(x, y, nxy, xout, yout, nout, method, yleft, yright, f, na_rm);
     return yout;
 }
@@ -86,6 +86,6 @@ approx_output_t approx(uint32_t n, double *x, double *y, uint32_t nout)
     double *xout = linspace(x[0], x[n - 1], nout);
     double *yout = C_Approx(x, y, n, xout, nout, 1, NAN, NAN, 0, 1);
 
-    approx_output_t output = {.x = xout, .y = yout};
+    approx_output_t output = {.n = nout, .x = xout, .y = yout};
     return output;
 }

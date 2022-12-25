@@ -2,6 +2,17 @@
 #include <stdlib.h>
 #include "spline.h"
 
+typedef struct
+{
+    int method;
+    int n;
+    double *x;
+    double *y;
+    double *b;
+    double *c;
+    double *d;
+} Z_struct_t;
+
 static void natural_spline(int n, double *x, double *y, double *b, double *c, double *d)
 {
     if (n < 2)

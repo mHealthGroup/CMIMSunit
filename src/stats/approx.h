@@ -9,7 +9,7 @@
 
 typedef struct
 {
-    int n;
+    uint32_t n;
     double *x;
     double *y;
 } approx_output_t;
