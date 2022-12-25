@@ -88,34 +88,22 @@ static double mean(int n, double *x)
     return sum / (double)n;
 }
 
-float CRIT_FUNC(int *icrit, float fx)
-{
-    if (*icrit == 3)
-    {
-        return fx - 3.0;
-    }
-    else
-    {
-        return fx;
-    }
-}
-
-double fsign(double x, double y)
+static double fsign(double x, double y)
 {
     return ((y >= 0) ? fabs(x) : -fabs(x));
 }
 
-int py_idx_1(int num_rows, int row_num, int col_num)
+static int convert_2d_to_1d_idx(int num_rows, int row_num, int col_num)
 {
     row_num = row_num + 1;
     col_num = col_num + 1;
     return ((col_num - 1) * num_rows + row_num) - 1;
 }
 
-int findInterval2(double *xt, int n, double x,
-                  uint8_t rightmost_closed, uint8_t all_inside,
-                  uint8_t left_open, // <- new in findInterval2()
-                  int ilo, int *mflag)
+static int findInterval2(double *xt, int n, double x,
+                         uint8_t rightmost_closed, uint8_t all_inside,
+                         uint8_t left_open, // <- new in findInterval2()
+                         int ilo, int *mflag)
 {
     int istep, middle, ihi;
 
@@ -261,30 +249,23 @@ L51: // left_open
 } /* findInterval2 */
 
 // has been in API -- keep for compatibility:
-int findInterval(double *xt, int n, double x,
-                 uint8_t rightmost_closed, uint8_t all_inside, int ilo,
-                 int *mflag)
+static int findInterval(double *xt, int n, double x,
+                        uint8_t rightmost_closed, uint8_t all_inside, int ilo,
+                        int *mflag)
 {
     return findInterval2(xt, n, x, rightmost_closed, all_inside, 0, ilo, mflag);
 }
 
-int interv(double *xt, int n, double x,
-           uint8_t rightmost_closed, uint8_t all_inside,
-           int ilo, int *mflag)
+static int interv(double *xt, int n, double x,
+                  uint8_t rightmost_closed, uint8_t all_inside,
+                  int ilo, int *mflag)
 {
     return findInterval(xt, n, x, rightmost_closed, all_inside, ilo, mflag);
 }
 
-void bsplvb(double *t, int lent, int jhigh, int index, double x, int left, double *biatx,
-            int *j, double *deltal, double *deltar)
+static void bsplvb(double *t, int lent, int jhigh, int index, double x, int left, double *biatx,
+                   int *j, double *deltal, double *deltar)
 {
-    //     # input args
-    //     # integer lent, jhigh, index, left
-    //     # double precision t(lent),x, biatx(jhigh)
-
-    //     # local variables
-    //     # jmax = 20
-    //     # j = 1
     int i;
 
     if (index != 2)
@@ -314,13 +295,9 @@ void bsplvb(double *t, int lent, int jhigh, int index, double x, int left, doubl
     }
 }
 
-void bsplvd(double *t, int lent, int k, double x, int left, double *a, double *dbiatx, int nderiv,
-            int *j, double *deltal, double *deltar)
+static void bsplvd(double *t, int lent, int k, double x, int left, double *a, double *dbiatx, int nderiv,
+                   int *j, double *deltal, double *deltar)
 {
-    // # input args
-    // # integer lent,k,left,nderiv
-    // # double precision t(lent),x, dbiatx(k,nderiv), a(k,k)
-
     int mhigh = MAX(MIN(nderiv, k), 1);
     int kp1 = k + 1;
 
@@ -336,7 +313,7 @@ void bsplvd(double *t, int lent, int k, double x, int left, double *a, double *d
         int jp1mid = 1;
         for (j_idx = ideriv; j_idx < k + 1; j_idx++)
         {
-            dbiatx[py_idx_1(4, j_idx - 1, ideriv - 1)] = dbiatx[py_idx_1(4, jp1mid - 1, 1 - 1)];
+            dbiatx[convert_2d_to_1d_idx(4, j_idx - 1, ideriv - 1)] = dbiatx[convert_2d_to_1d_idx(4, jp1mid - 1, 1 - 1)];
             jp1mid += 1;
         }
 
@@ -348,10 +325,10 @@ void bsplvd(double *t, int lent, int k, double x, int left, double *a, double *d
     for (i_idx = 1; i_idx < k + 1; i_idx++)
     {
         for (j_idx = jlow; j_idx < k + 1; j_idx++)
-            a[py_idx_1(4, j_idx - 1, i_idx - 1)] = 0.0;
+            a[convert_2d_to_1d_idx(4, j_idx - 1, i_idx - 1)] = 0.0;
 
         jlow = i_idx;
-        a[py_idx_1(4, i_idx - 1, i_idx - 1)] = 1.0;
+        a[convert_2d_to_1d_idx(4, i_idx - 1, i_idx - 1)] = 1.0;
     }
 
     for (m_idx = 2; m_idx < mhigh + 1; m_idx++)
@@ -367,7 +344,7 @@ void bsplvd(double *t, int lent, int k, double x, int left, double *a, double *d
             // the assumption that t(left) < t(left+1) makes denominator in  factor  nonzero.
             for (j_idx = 1; j_idx < i_idx + 1; j_idx++)
             {
-                a[py_idx_1(4, i_idx - 1, j_idx - 1)] = (a[py_idx_1(4, i_idx - 1, j_idx - 1)] - a[py_idx_1(4, i_idx - 1 - 1, j_idx - 1)]) * factor;
+                a[convert_2d_to_1d_idx(4, i_idx - 1, j_idx - 1)] = (a[convert_2d_to_1d_idx(4, i_idx - 1, j_idx - 1)] - a[convert_2d_to_1d_idx(4, i_idx - 1 - 1, j_idx - 1)]) * factor;
             }
             il -= 1;
             i_idx -= 1;
@@ -378,27 +355,23 @@ void bsplvd(double *t, int lent, int k, double x, int left, double *a, double *d
             double _sum = 0.0;
             int jlow = MAX(i_idx, m_idx);
             for (j_idx = jlow; j_idx < k + 1; j_idx++)
-                _sum += a[py_idx_1(4, j_idx - 1, i_idx - 1)] * dbiatx[py_idx_1(4, j_idx - 1, m_idx - 1)];
+                _sum += a[convert_2d_to_1d_idx(4, j_idx - 1, i_idx - 1)] * dbiatx[convert_2d_to_1d_idx(4, j_idx - 1, m_idx - 1)];
 
-            dbiatx[py_idx_1(4, i_idx - 1, m_idx - 1)] = _sum;
+            dbiatx[convert_2d_to_1d_idx(4, i_idx - 1, m_idx - 1)] = _sum;
         }
     }
 }
 
-void sgram(double *sg0, double *sg1, double *sg2, double *sg3, double *tb, int nb,
-           int *j, double *deltal, double *deltar)
+static void sgram(double *sg0, double *sg1, double *sg2, double *sg3, double *tb, int nb,
+                  int *j, double *deltal, double *deltar)
 {
-    // input args (Fortran)
-    // integer nb
-    // DOUBLE precision sg0(nb),sg1(nb),sg2(nb),sg3(nb), tb(nb+4)
-
     int i, ii, jj;
     int mflag = 0;
 
-    double *vnikx = calloc(12, sizeof(double));
-    double *work = calloc(16, sizeof(double));
-    double *yw1 = calloc(4, sizeof(double));
-    double *yw2 = calloc(4, sizeof(double));
+    double *vnikx = malloc(12 * sizeof(double));
+    double *work = malloc(16 * sizeof(double));
+    double *yw1 = malloc(4 * sizeof(double));
+    double *yw2 = malloc(4 * sizeof(double));
 
     int lentb = nb + 4;
     //  Initialise the sigma vectors
@@ -442,7 +415,7 @@ void sgram(double *sg0, double *sg1, double *sg2, double *sg3, double *tb, int n
         // Put values into yw1
         for (ii = 1; ii < 4 + 1; ii++)
         {
-            yw1[ii - 1] = vnikx[py_idx_1(4, ii - 1, 3 - 1)];
+            yw1[ii - 1] = vnikx[convert_2d_to_1d_idx(4, ii - 1, 3 - 1)];
         }
 
         // Right end second derivatives
@@ -452,7 +425,7 @@ void sgram(double *sg0, double *sg1, double *sg2, double *sg3, double *tb, int n
         // Slope*(length of interval) in Linear Approximation to B''
         for (ii = 1; ii < 4 + 1; ii++)
         {
-            yw2[ii - 1] = vnikx[py_idx_1(4, ii - 1, 3 - 1)] - yw1[ii - 1];
+            yw2[ii - 1] = vnikx[convert_2d_to_1d_idx(4, ii - 1, 3 - 1)] - yw1[ii - 1];
         }
 
         // Calculate Contributions to the sigma vectors
@@ -530,19 +503,14 @@ void sgram(double *sg0, double *sg1, double *sg2, double *sg3, double *tb, int n
     return;
 }
 
-void stxwx(
+static void stxwx(
     double *x, double *z, double *w, int k, double *xknot, int n,
     double *y, double *hs0, double *hs1, double *hs2, double *hs3,
     int *j, double *deltal, double *deltar)
 {
-    // input args
-    // integer k,n
-    // DOUBLE precision x(k),z(k),w(k), xknot(n+4),y(n),
-    // &     hs0(n),hs1(n),hs2(n),hs3(n)
-
     int i;
-    double *vnikx = calloc(4, sizeof(double));
-    double *work = calloc(16, sizeof(double));
+    double *vnikx = malloc(4 * sizeof(double));
+    double *work = malloc(16 * sizeof(double));
     int mflag = 0;
 
     int lenxk = n + 4;
@@ -600,7 +568,7 @@ void stxwx(
     return;
 }
 
-double ddot(int n, double *dx, int incx, double *dy, int incy)
+static double ddot(int n, double *dx, int incx, double *dy, int incy)
 {
     // http://for2html.sourceforge.net/BLAS/ddot.html
 
@@ -655,14 +623,9 @@ double ddot(int n, double *dx, int incx, double *dy, int incy)
     return ddot;
 }
 
-void dpbfa(double *abd, int ld4, int n, int m, int info)
+static void dpbfa(double *abd, int ld4, int n, int m, int info)
 {
     // dpbfa factors a double precision symmetric positive definite
-    // input args
-    // integer lda,n,m,info
-    // double precision abd(lda,n)
-    // abd.shape = (ld4_ptr[0], n)
-
     int j, k, ik, jk, mu;
     double s;
 
@@ -677,28 +640,28 @@ void dpbfa(double *abd, int ld4, int n, int m, int info)
             // go to 20
             for (k = mu; k < m + 1; k++)
             {
-                double *x = abd + py_idx_1(ld4, ik - 1, jk - 1);
-                double *y = abd + py_idx_1(ld4, mu - 1, j - 1);
-                double t = abd[py_idx_1(ld4, k - 1, j - 1)] - ddot(k - mu, x, 1, y, 1);
-                t = t / abd[py_idx_1(ld4, m + 1 - 1, jk - 1)];
-                abd[py_idx_1(ld4, k - 1, j - 1)] = t;
+                double *x = abd + convert_2d_to_1d_idx(ld4, ik - 1, jk - 1);
+                double *y = abd + convert_2d_to_1d_idx(ld4, mu - 1, j - 1);
+                double t = abd[convert_2d_to_1d_idx(ld4, k - 1, j - 1)] - ddot(k - mu, x, 1, y, 1);
+                t = t / abd[convert_2d_to_1d_idx(ld4, m + 1 - 1, jk - 1)];
+                abd[convert_2d_to_1d_idx(ld4, k - 1, j - 1)] = t;
                 s = s + t * t;
                 ik = ik - 1;
                 jk = jk + 1;
             }
 
         // 20 continue
-        s = abd[py_idx_1(ld4, m + 1 - 1, j - 1)] - s;
+        s = abd[convert_2d_to_1d_idx(ld4, m + 1 - 1, j - 1)] - s;
         if (s <= 0.0)
             break;
 
-        abd[py_idx_1(ld4, m + 1 - 1, j - 1)] = sqrt(s);
+        abd[convert_2d_to_1d_idx(ld4, m + 1 - 1, j - 1)] = sqrt(s);
     }
 
     return;
 }
 
-void daxpy(int n, double da, double *dx, int incx, double *dy, int incy)
+static void daxpy(int n, double da, double *dx, int incx, double *dy, int incy)
 {
     // http://for2html.sourceforge.net/BLAS/daxpy.html
 
@@ -745,7 +708,7 @@ void daxpy(int n, double da, double *dx, int incx, double *dy, int incy)
     }
 }
 
-void dpbsl(double *abd, int lda, int n, int m, double *b)
+static void dpbsl(double *abd, int lda, int n, int m, double *b)
 {
     int k, kb, lm, la, lb;
     double *x;
@@ -757,9 +720,9 @@ void dpbsl(double *abd, int lda, int n, int m, double *b)
         la = m + 1 - lm;
         lb = k - lm;
 
-        x = abd + py_idx_1(lda, la - 1, k - 1);
+        x = abd + convert_2d_to_1d_idx(lda, la - 1, k - 1);
         t = ddot(lm, x, 1, b + lb - 1, 1);
-        b[k - 1] = (b[k - 1] - t) / abd[py_idx_1(lda, m + 1 - 1, k - 1)];
+        b[k - 1] = (b[k - 1] - t) / abd[convert_2d_to_1d_idx(lda, m + 1 - 1, k - 1)];
     }
 
     // solve r*x = y
@@ -769,25 +732,20 @@ void dpbsl(double *abd, int lda, int n, int m, double *b)
         lm = MIN(k - 1, m);
         la = m + 1 - lm;
         lb = k - lm;
-        b[k - 1] = b[k - 1] / abd[py_idx_1(lda, m + 1 - 1, k - 1)];
+        b[k - 1] = b[k - 1] / abd[convert_2d_to_1d_idx(lda, m + 1 - 1, k - 1)];
         t = -1.0 * b[k - 1];
 
-        x = abd + py_idx_1(lda, la - 1, k - 1);
+        x = abd + convert_2d_to_1d_idx(lda, la - 1, k - 1);
         daxpy(lm, t, x, 1, b + lb - 1, 1);
     }
 }
 
-double bvalue(double *t, double *bcoef, int n, int k, double x, int jderiv)
+static double bvalue(double *t, double *bcoef, int n, int k, double x, int jderiv)
 {
-    // inputs args
-    // integer n,k, jderiv
-    // DOUBLE precision t(*), bcoef(n), x
-
-    // local variables
     int kmax = 20;
-    double *aj = calloc(kmax, sizeof(double));
-    double *dm = calloc(kmax, sizeof(double));
-    double *dp = calloc(kmax, sizeof(double));
+    double *aj = malloc(kmax * sizeof(double));
+    double *dm = malloc(kmax * sizeof(double));
+    double *dp = malloc(kmax * sizeof(double));
     int mflag, j;
 
     // initialize
@@ -893,7 +851,7 @@ double bvalue(double *t, double *bcoef, int n, int k, double x, int jderiv)
     return bvalue;
 }
 
-void sinerp(
+static void sinerp(
     double *abd,
     int ld4,
     int nk,
@@ -902,12 +860,9 @@ void sinerp(
     int ldnk,
     int flag)
 {
-    // integer ld4,nk,ldnk,flag
-    // DOUBLE precision abd(ld4,nk), p1ip(ld4,nk), p2ip(ldnk,nk)
-
-    double *wjm3 = calloc(3, sizeof(double));
-    double *wjm2 = calloc(2, sizeof(double));
-    double *wjm1 = calloc(1, sizeof(double));
+    double *wjm3 = malloc(3 * sizeof(double));
+    double *wjm2 = malloc(2 * sizeof(double));
+    double *wjm1 = malloc(1 * sizeof(double));
 
     double c0;
     double c1 = 0.0;
@@ -926,24 +881,24 @@ void sinerp(
     for (i = 1; i < nk + 1; i++)
     {
         j = nk - i + 1;
-        c0 = 1.0 / abd[py_idx_1(ld4, 4 - 1, j - 1)];
+        c0 = 1.0 / abd[convert_2d_to_1d_idx(ld4, 4 - 1, j - 1)];
         if (j <= nk - 3)
         {
-            c1 = abd[py_idx_1(ld4, 1 - 1, j + 3 - 1)] * c0;
-            c2 = abd[py_idx_1(ld4, 2 - 1, j + 2 - 1)] * c0;
-            c3 = abd[py_idx_1(ld4, 3 - 1, j + 1 - 1)] * c0;
+            c1 = abd[convert_2d_to_1d_idx(ld4, 1 - 1, j + 3 - 1)] * c0;
+            c2 = abd[convert_2d_to_1d_idx(ld4, 2 - 1, j + 2 - 1)] * c0;
+            c3 = abd[convert_2d_to_1d_idx(ld4, 3 - 1, j + 1 - 1)] * c0;
         }
         else if (j == nk - 2)
         {
             c1 = 0.0;
-            c2 = abd[py_idx_1(ld4, 2 - 1, j + 2 - 1)] * c0;
-            c3 = abd[py_idx_1(ld4, 3 - 1, j + 1 - 1)] * c0;
+            c2 = abd[convert_2d_to_1d_idx(ld4, 2 - 1, j + 2 - 1)] * c0;
+            c3 = abd[convert_2d_to_1d_idx(ld4, 3 - 1, j + 1 - 1)] * c0;
         }
         else if (j == nk - 1)
         {
             c1 = 0.0;
             c2 = 0.0;
-            c3 = abd[py_idx_1(ld4, 3 - 1, j + 1 - 1)] * c0;
+            c3 = abd[convert_2d_to_1d_idx(ld4, 3 - 1, j + 1 - 1)] * c0;
         }
         else if (j == nk)
         {
@@ -952,16 +907,16 @@ void sinerp(
             c3 = 0.0;
         }
 
-        p1ip[py_idx_1(ld4, 1 - 1, j - 1)] = 0.0 - (c1 * wjm3[1 - 1] + c2 * wjm3[2 - 1] + c3 * wjm3[3 - 1]);
-        p1ip[py_idx_1(ld4, 2 - 1, j - 1)] = 0.0 - (c1 * wjm3[2 - 1] + c2 * wjm2[1 - 1] + c3 * wjm2[2 - 1]);
-        p1ip[py_idx_1(ld4, 3 - 1, j - 1)] = 0.0 - (c1 * wjm3[3 - 1] + c2 * wjm2[2 - 1] + c3 * wjm1[1 - 1]);
-        p1ip[py_idx_1(ld4, 4 - 1, j - 1)] = (pow(c0, 2) + pow(c1, 2) * wjm3[1 - 1] + 2.0 * c1 * c2 * wjm3[2 - 1] + 2.0 * c1 * c3 * wjm3[3 - 1] + pow(c2, 2) * wjm2[1 - 1] + 2.0 * c2 * c3 * wjm2[2 - 1] + pow(c3, 2) * wjm1[1 - 1]);
+        p1ip[convert_2d_to_1d_idx(ld4, 1 - 1, j - 1)] = 0.0 - (c1 * wjm3[1 - 1] + c2 * wjm3[2 - 1] + c3 * wjm3[3 - 1]);
+        p1ip[convert_2d_to_1d_idx(ld4, 2 - 1, j - 1)] = 0.0 - (c1 * wjm3[2 - 1] + c2 * wjm2[1 - 1] + c3 * wjm2[2 - 1]);
+        p1ip[convert_2d_to_1d_idx(ld4, 3 - 1, j - 1)] = 0.0 - (c1 * wjm3[3 - 1] + c2 * wjm2[2 - 1] + c3 * wjm1[1 - 1]);
+        p1ip[convert_2d_to_1d_idx(ld4, 4 - 1, j - 1)] = (pow(c0, 2) + pow(c1, 2) * wjm3[1 - 1] + 2.0 * c1 * c2 * wjm3[2 - 1] + 2.0 * c1 * c3 * wjm3[3 - 1] + pow(c2, 2) * wjm2[1 - 1] + 2.0 * c2 * c3 * wjm2[2 - 1] + pow(c3, 2) * wjm1[1 - 1]);
         wjm3[1 - 1] = wjm2[1 - 1];
         wjm3[2 - 1] = wjm2[2 - 1];
-        wjm3[3 - 1] = p1ip[py_idx_1(ld4, 2 - 1, j - 1)];
+        wjm3[3 - 1] = p1ip[convert_2d_to_1d_idx(ld4, 2 - 1, j - 1)];
         wjm2[1 - 1] = wjm1[1 - 1];
-        wjm2[2 - 1] = p1ip[py_idx_1(ld4, 3 - 1, j - 1)];
-        wjm1[1 - 1] = p1ip[py_idx_1(ld4, 4 - 1, j - 1)];
+        wjm2[2 - 1] = p1ip[convert_2d_to_1d_idx(ld4, 3 - 1, j - 1)];
+        wjm1[1 - 1] = p1ip[convert_2d_to_1d_idx(ld4, 4 - 1, j - 1)];
 
         if (flag != 0)
         { // ____ Pass 2 _____  Compute p2ip  [never from R's code!]
@@ -971,7 +926,7 @@ void sinerp(
             {
                 if (j + k - 1 > nk)
                     break;
-                p2ip[py_idx_1(ldnk, j - 1, j + k - 1 - 1)] = p1ip[py_idx_1(ld4, 5 - k - 1, j - 1)];
+                p2ip[convert_2d_to_1d_idx(ldnk, j - 1, j + k - 1 - 1)] = p1ip[convert_2d_to_1d_idx(ld4, 5 - k - 1, j - 1)];
             }
 
             for (i = 1; i < nk + 1; i++)
@@ -981,33 +936,33 @@ void sinerp(
                 if (j - 4 >= 1)
                     for (k = j - 4; k > 1 + 1; k -= 1)
                     {
-                        c0 = 1.0 / abd[py_idx_1(ld4, 4 - 1, k - 1)];
-                        c1 = abd[py_idx_1(ld4, 1 - 1, k + 3 - 1)] * c0;
-                        c2 = abd[py_idx_1(ld4, 2 - 1, k + 2 - 1)] * c0;
-                        c3 = abd[py_idx_1(ld4, 3 - 1, k + 1 - 1)] * c0;
-                        p2ip[py_idx_1(ldnk, k - 1, j - 1)] = 0.0 - (c1 * p2ip[py_idx_1(ldnk, k + 3 - 1, j - 1)] + c2 * p2ip[py_idx_1(ldnk, k + 2 - 1, j - 1)] + c3 * p2ip[py_idx_1(ldnk, k + 1 - 1, j - 1)]);
+                        c0 = 1.0 / abd[convert_2d_to_1d_idx(ld4, 4 - 1, k - 1)];
+                        c1 = abd[convert_2d_to_1d_idx(ld4, 1 - 1, k + 3 - 1)] * c0;
+                        c2 = abd[convert_2d_to_1d_idx(ld4, 2 - 1, k + 2 - 1)] * c0;
+                        c3 = abd[convert_2d_to_1d_idx(ld4, 3 - 1, k + 1 - 1)] * c0;
+                        p2ip[convert_2d_to_1d_idx(ldnk, k - 1, j - 1)] = 0.0 - (c1 * p2ip[convert_2d_to_1d_idx(ldnk, k + 3 - 1, j - 1)] + c2 * p2ip[convert_2d_to_1d_idx(ldnk, k + 2 - 1, j - 1)] + c3 * p2ip[convert_2d_to_1d_idx(ldnk, k + 1 - 1, j - 1)]);
                     }
             }
         }
     }
 }
 
-void sslvrg(int *penalt, int *dofoff,
-            double *xs, double *ys, double *ws, double *ssw, int n,
-            double *knot, int nk,
-            double *coef, double *sz, double *lev, double *crit,
-            int *icrit, double *lspar, double *xwy,
-            double *hs0, double *hs1, double *hs2, double *hs3,
-            double *sg0, double *sg1, double *sg2, double *sg3, double *abd,
-            double *p1ip, double *p2ip, int *ld4, int *ldnk, int *ier,
-            int *j, double *deltal, double *deltar)
+static void sslvrg(int *penalt, int *dofoff,
+                   double *xs, double *ys, double *ws, double *ssw, int n,
+                   double *knot, int nk,
+                   double *coef, double *sz, double *lev, double *crit,
+                   int *icrit, double *lspar, double *xwy,
+                   double *hs0, double *hs1, double *hs2, double *hs3,
+                   double *sg0, double *sg1, double *sg2, double *sg3, double *abd,
+                   double *p1ip, double *p2ip, int *ld4, int *ldnk, int *ier,
+                   int *j, double *deltal, double *deltar)
 {
     // p1ip.shape = (ld4_ptr[0], nk)
 
     // local variables
     int mflag = 0;
-    double *vnikx = calloc(4, sizeof(double));
-    double *work = calloc(16, sizeof(double));
+    double *vnikx = malloc(4 * sizeof(double));
+    double *work = malloc(16 * sizeof(double));
 
     int lenkno = nk + 4;
     int ileft = 1;
@@ -1019,22 +974,22 @@ void sslvrg(int *penalt, int *dofoff,
     for (i = 1; i < nk + 1; i++)
     {
         coef[i - 1] = xwy[i - 1];
-        abd[py_idx_1(*ld4, 4 - 1, i - 1)] = (hs0[i - 1] + lspar[0] * sg0[i - 1]);
+        abd[convert_2d_to_1d_idx(*ld4, 4 - 1, i - 1)] = (hs0[i - 1] + lspar[0] * sg0[i - 1]);
     }
 
     for (i = 1; i < nk - 1 + 1; i++)
     {
-        abd[py_idx_1(*ld4, 3 - 1, i + 1 - 1)] = (hs1[i - 1] + lspar[0] * sg1[i - 1]);
+        abd[convert_2d_to_1d_idx(*ld4, 3 - 1, i + 1 - 1)] = (hs1[i - 1] + lspar[0] * sg1[i - 1]);
     }
 
     for (i = 1; i < nk - 2 + 1; i++)
     {
-        abd[py_idx_1(*ld4, 2 - 1, i + 2 - 1)] = (hs2[i - 1] + lspar[0] * sg2[i - 1]);
+        abd[convert_2d_to_1d_idx(*ld4, 2 - 1, i + 2 - 1)] = (hs2[i - 1] + lspar[0] * sg2[i - 1]);
     }
 
     for (i = 1; i < nk - 3 + 1; i++)
     {
-        abd[py_idx_1(*ld4, 1 - 1, i + 3 - 1)] = (hs3[i - 1] + lspar[0] * sg3[i - 1]);
+        abd[convert_2d_to_1d_idx(*ld4, 1 - 1, i + 3 - 1)] = (hs3[i - 1] + lspar[0] * sg3[i - 1]);
     }
 
     // factorize banded matrix abd (into upper triangular)
@@ -1091,7 +1046,7 @@ void sslvrg(int *penalt, int *dofoff,
             double b1 = vnikx[2 - 1];
             double b2 = vnikx[3 - 1];
             double b3 = vnikx[4 - 1];
-            lev[i - 1] = (p1ip[py_idx_1(*ld4, 4 - 1, j_idx - 1)] * pow(b0, 2) + 2.0 * p1ip[py_idx_1(*ld4, 3 - 1, j_idx - 1)] * b0 * b1 + 2.0 * p1ip[py_idx_1(*ld4, 2 - 1, j_idx - 1)] * b0 * b2 + 2.0 * p1ip[py_idx_1(*ld4, 1 - 1, j_idx - 1)] * b0 * b3 + p1ip[py_idx_1(*ld4, 4 - 1, j_idx + 1 - 1)] * pow(b1, 2) + 2.0 * p1ip[py_idx_1(*ld4, 3 - 1, j_idx + 1 - 1)] * b1 * b2 + 2.0 * p1ip[py_idx_1(*ld4, 2 - 1, j_idx + 1 - 1)] * b1 * b3 + p1ip[py_idx_1(*ld4, 4 - 1, j_idx + 2 - 1)] * pow(b2, 2) + 2.0 * p1ip[py_idx_1(*ld4, 3 - 1, j_idx + 2 - 1)] * b2 * b3 + p1ip[py_idx_1(*ld4, 4 - 1, j_idx + 3 - 1)] * pow(b3, 2)) * pow(ws[i - 1], 2);
+            lev[i - 1] = (p1ip[convert_2d_to_1d_idx(*ld4, 4 - 1, j_idx - 1)] * pow(b0, 2) + 2.0 * p1ip[convert_2d_to_1d_idx(*ld4, 3 - 1, j_idx - 1)] * b0 * b1 + 2.0 * p1ip[convert_2d_to_1d_idx(*ld4, 2 - 1, j_idx - 1)] * b0 * b2 + 2.0 * p1ip[convert_2d_to_1d_idx(*ld4, 1 - 1, j_idx - 1)] * b0 * b3 + p1ip[convert_2d_to_1d_idx(*ld4, 4 - 1, j_idx + 1 - 1)] * pow(b1, 2) + 2.0 * p1ip[convert_2d_to_1d_idx(*ld4, 3 - 1, j_idx + 1 - 1)] * b1 * b2 + 2.0 * p1ip[convert_2d_to_1d_idx(*ld4, 2 - 1, j_idx + 1 - 1)] * b1 * b3 + p1ip[convert_2d_to_1d_idx(*ld4, 4 - 1, j_idx + 2 - 1)] * pow(b2, 2) + 2.0 * p1ip[convert_2d_to_1d_idx(*ld4, 3 - 1, j_idx + 2 - 1)] * b2 * b3 + p1ip[convert_2d_to_1d_idx(*ld4, 4 - 1, j_idx + 3 - 1)] * pow(b3, 2)) * pow(ws[i - 1], 2);
         }
 
         // Evaluate Criterion
@@ -1136,17 +1091,17 @@ void sslvrg(int *penalt, int *dofoff,
     }
 }
 
-void sbart(int *penalt, int *dofoff,
-           double *xs, double *ys, double *ws, double *ssw,
-           int n, double *knot, int nk, double *coef,
-           double *sz, double *lev, double *crit,
-           int *icrit, double *spar, int *ispar, int *iter,
-           double *lspar, double *uspar, double *tol, double *eps, double *Ratio,
-           int *isetup,
-           double *xwy, double *hs0, double *hs1, double *hs2,
-           double *hs3, double *sg0, double *sg1, double *sg2,
-           double *sg3, double *abd, double *p1ip, double *p2ip,
-           int *ld4, int *ldnk, int *ier)
+static void sbart(int *penalt, int *dofoff,
+                  double *xs, double *ys, double *ws, double *ssw,
+                  int n, double *knot, int nk, double *coef,
+                  double *sz, double *lev, double *crit,
+                  int *icrit, double *spar, int *ispar, int *iter,
+                  double *lspar, double *uspar, double *tol, double *eps, double *Ratio,
+                  int *isetup,
+                  double *xwy, double *hs0, double *hs1, double *hs2,
+                  double *hs3, double *sg0, double *sg1, double *sg2,
+                  double *sg3, double *abd, double *p1ip, double *p2ip,
+                  int *ld4, int *ldnk, int *ier)
 {
     // "Correct" ./sslvrg.f (line 129):   crit = 3 + (dofoff-df)**2
 #define CRIT(FX) (*icrit == 3 ? FX - 3. : FX)
@@ -1178,8 +1133,8 @@ void sbart(int *penalt, int *dofoff,
 
     int j = 1;
     int jmax = 20;
-    double *deltal = calloc(jmax, sizeof(double));
-    double *deltar = calloc(jmax, sizeof(double));
+    double *deltal = malloc(jmax * sizeof(double));
+    double *deltar = malloc(jmax * sizeof(double));
 
     /*  Compute SIGMA, X' W X, X' W z, trace ratio, s0, s1.
         SIGMA	-> sg0,sg1,sg2,sg3   -- via sgram() in ./sgram.f
@@ -1450,6 +1405,15 @@ static void rbart(
     return;
 }
 
+static double *bvalus(int n, double *knot, double *coef, int nk, double *x, double *s, int order)
+{
+    int i;
+    for (i = 0; i < n; i++)
+        s[i] = bvalue(knot, coef, nk, 4, x[i], order);
+
+    return s;
+}
+
 smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar)
 {
     int i;
@@ -1577,9 +1541,9 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     int icrit = 1;
     int df_offset = 0;
     int dofoff = df_offset;
-    double *coef = calloc(nk, sizeof(double));
-    double *ty = calloc(nx, sizeof(double));
-    double *lev = calloc(nx, sizeof(double));
+    double *coef = malloc(nk * sizeof(double));
+    double *ty = malloc(nx * sizeof(double));
+    double *lev = malloc(nx * sizeof(double));
     // double *lspar = &contr_sp.low;
     // double *uspar = &contr_sp.high;
     // double *tol = &contr_sp.tol;
@@ -1589,10 +1553,10 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     double crit[1] = {0};
     int iparms[4] = {icrit, ispar, contr_sp.maxit, spar_is_lambda};
     int ier[1] = {0};
-    double *scrtch = calloc(18 * nk + 1, sizeof(double));
+    double *scrtch = malloc((18 * nk + 1) * sizeof(double));
 
     int penalty = 1;
-    double *ws = calloc(w_len, sizeof(double));
+    double *ws = malloc(w_len * sizeof(double));
     for (i = 0; i < w_len; i++)
     {
         ws[i] = wbar[i];
@@ -1659,7 +1623,7 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
         }
         else
         {
-            fit.ty = calloc(nx, sizeof(double));
+            fit.ty = malloc(nx * sizeof(double));
             double y_mean = mean(nx, y);
             for (i = 0; i < n; i++)
             {
@@ -1670,12 +1634,12 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     }
 
     // cv is false, not none
-    double *r = calloc(n, sizeof(double));
+    double *r = malloc(n * sizeof(double));
     for (i = 0; i < n; i++)
     {
         r[i] = y[i] - fit.ty[i];
     }
-    double *r_squared = calloc(n, sizeof(double));
+    double *r_squared = malloc(n * sizeof(double));
     for (i = 0; i < n; i++)
     {
         r_squared[i] = r_squared[i] * r_squared[i];
@@ -1708,24 +1672,15 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     return model;
 }
 
-static double *bvalus(int n, double *knot, double *coef, int nk, double *x, double *s, int order)
-{
-    int i;
-    for (i = 0; i < n; i++)
-        s[i] = bvalue(knot, coef, nk, 4, x[i], order);
-
-    return s;
-}
-
 double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len, int deriv)
 {
     int i;
-    double *xs = calloc(x_len, sizeof(double));
+    double *xs = malloc(x_len * sizeof(double));
     double *y = xs;
-    int *extrap_left = calloc(x_len, sizeof(int));
-    int *extrap_right = calloc(x_len, sizeof(int));
-    int *extrap = calloc(x_len, sizeof(int));
-    int *interp = calloc(x_len, sizeof(int));
+    int *extrap_left = malloc(x_len * sizeof(int));
+    int *extrap_right = malloc(x_len * sizeof(int));
+    int *extrap = malloc(x_len * sizeof(int));
+    int *interp = malloc(x_len * sizeof(int));
     int n = 0;
     int any_extrap_left = 0;
     int any_extrap_right = 0;
@@ -1751,7 +1706,7 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
 
     if (n > 0)
     {
-        double *bvalus_xs = calloc(n, sizeof(double));
+        double *bvalus_xs = malloc(n * sizeof(double));
         int j = 0;
         for (i = 0; i < x_len; i++)
         {
@@ -1767,7 +1722,7 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
             model.fit_coef,
             (int)model.fit_nk,
             bvalus_xs,
-            calloc(n, sizeof(double)),
+            malloc(n * sizeof(double)),
             (int)deriv);
 
         j = 0;
@@ -1784,8 +1739,8 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
     if (n < x_len)
     {
         double xrange[2] = {model.fit_min, model.fit_min + model.fit_range};
-        double *end_model_fit = calloc(2, sizeof(double));
-        double *end_slopes = calloc(2, sizeof(double));
+        double *end_model_fit = malloc(2 * sizeof(double));
+        double *end_slopes = malloc(2 * sizeof(double));
 
         if (deriv == 0)
         {
@@ -1842,35 +1797,37 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
     return y;
 }
 
-// int main(int argc, char **argv)
-// {
-//     int n = 5;
-//     double spar = 0.6;
-//     double over_t[5] = {
-//         1485471758.410000085830688476562500000000000000000000000000000000000000000000000000000000000,
-//         1485471758.420000076293945312500000000000000000000000000000000000000000000000000000000000000,
-//         1485471758.430000066757202148437500000000000000000000000000000000000000000000000000000000000,
-//         1485471758.440000057220458984375000000000000000000000000000000000000000000000000000000000000,
-//         1485471758.450000047683715820312500000000000000000000000000000000000000000000000000000000000,
-//     };
-//     double over_values[5] = {
-//         -2.72324045287203775345119538542348891496658325195312500000000000000000000000000000000000000,
-//         -2.99826949144669985258815358974970877170562744140625000000000000000000000000000000000000000,
-//         -3.27619376952312002515554922865703701972961425781250000000000000000000000000000000000000000,
-//         -3.55788758289167850179524066334124654531478881835937500000000000000000000000000000000000000,
-//         -3.84187275099852998394567293871659785509109497070312500000000000000000000000000000000000000,
-//     };
-//     double weights[5] = {
-//         0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
-//         0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
-//         0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
-//         0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
-//         1.600546460300313889035805914318189024925231933593750000000000000000000000000000000000000000,
-//     };
+int main(int argc, char **argv)
+{
+    int n = 5;
+    double spar = 0.6;
+    double over_t[5] = {
+        1485471758.410000085830688476562500000000000000000000000000000000000000000000000000000000000,
+        1485471758.420000076293945312500000000000000000000000000000000000000000000000000000000000000,
+        1485471758.430000066757202148437500000000000000000000000000000000000000000000000000000000000,
+        1485471758.440000057220458984375000000000000000000000000000000000000000000000000000000000000,
+        1485471758.450000047683715820312500000000000000000000000000000000000000000000000000000000000,
+    };
+    double over_values[5] = {
+        -2.72324045287203775345119538542348891496658325195312500000000000000000000000000000000000000,
+        -2.99826949144669985258815358974970877170562744140625000000000000000000000000000000000000000,
+        -3.27619376952312002515554922865703701972961425781250000000000000000000000000000000000000000,
+        -3.55788758289167850179524066334124654531478881835937500000000000000000000000000000000000000,
+        -3.84187275099852998394567293871659785509109497070312500000000000000000000000000000000000000,
+    };
+    double weights[5] = {
+        0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
+        0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
+        0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
+        0.849863384924921416718746058904798701405525207519531250000000000000000000000000000000000000,
+        1.600546460300313889035805914318189024925231933593750000000000000000000000000000000000000000,
+    };
 
-//     // smooth_spline_model_t model = sm_spline_coef(n, over_t, over_values, n, weights, spar);
-//     // double *results = predict_smooth_spline(model, over_t, n, 0);
+    smooth_spline_model_t model = sm_spline_coef(n, over_t, over_values, n, weights, spar);
+    double *results = predict_smooth_spline(model, over_t, n, 0);
+    // expected output:
+    // -2.720145075829855763061 -2.999651194341386162279 -3.279436632826645769967 -3.559638255769206338641 -3.840131199147975848973
 
-//     double iqr_result = iqr(5, over_t);
-//     return 0;
-// }
+    double iqr_result = iqr(5, over_t);
+    return 0;
+}
