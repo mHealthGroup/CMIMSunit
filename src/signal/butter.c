@@ -28,7 +28,7 @@ transfer_t butter_coeffs(int order, int n_W, double *W, int pass_type, char plan
     double C = 1; // default cutoff frequency
     // pole = C * np.exp(1j * np.pi * (2 * np.arange(1, order + 1, 1) + order - 1) / (2 * order))
     // -0.3826834323650897262681+0.9238795325112867384831i
-    double complex *pole = calloc(order, sizeof(double complex));
+    double complex *pole = malloc(order * sizeof(double complex));
     for (i = 0; i < order; i++)
         pole[i] = C * cexp(I * M_PI * (2 * (i + 1) + order - 1) / (2 * order));
 
@@ -52,26 +52,3 @@ transfer_t butter_coeffs(int order, int n_W, double *W, int pass_type, char plan
     // a = a.real
     return tf;
 }
-
-// int main(int argc, char **argv)
-// {
-//     int order = 4;
-//     double W[2] = {
-//         0.004000000000000000083267,
-//         0.100000000000000005551115};
-//     int pass_type = 3;
-
-//     transfer_t tf = butter_coeffs(order, 2, W, pass_type, 'z');
-
-//     // $b
-//     // 0.0003588407958559478483536  0.0000000000000000000000000 -0.0014353631834237913934144  0.0000000000000000000000000
-//     // 0.0021530447751356871985418  0.0000000000000000000000000 -0.0014353631834237913934144  0.0000000000000000000000000
-//     // 0.0003588407958559478483536
-
-//     // $a
-//     // 1.0000000000000000000000  -7.1989557602839946426343  22.7102400569503402039118 -41.0121387818457563412267
-//     // 46.3786038427510902693029 -33.6341446649892930054193  15.2766725132619356486430  -3.9733824787545191092875
-//     // 0.4531052730785416482462
-
-//     return 0;
-// }

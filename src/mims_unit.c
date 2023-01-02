@@ -89,8 +89,8 @@ dataframe_t mims_unit(dataframe_t *dataframe,
 
 int main(int argc, char **argv)
 {
-  // int n = 108000;
-  int n = 2016000;
+  int n = 108000;
+  // int n = 2016000;
   // int m = 720;
 
   int got1, got2, got3, got4;
@@ -100,15 +100,15 @@ int main(int argc, char **argv)
   double *y = malloc(n * sizeof(double));
   double *z = malloc(n * sizeof(double));
   // int *segments = malloc(m * sizeof(int));
-  // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/timestamps.csv", "r");
-  // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/x.csv", "r");
-  // FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/y.csv", "r");
-  // FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/z.csv", "r");
+  FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/timestamps.csv", "r");
+  FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/x.csv", "r");
+  FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/y.csv", "r");
+  FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/z.csv", "r");
 
-  FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/timestamps.csv", "r");
-  FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/x.csv", "r");
-  FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/y.csv", "r");
-  FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/z.csv", "r");
+  // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/timestamps.csv", "r");
+  // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/x.csv", "r");
+  // FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/y.csv", "r");
+  // FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/z.csv", "r");
 
   // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/t.csv", "r");
   // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/x.csv", "r");

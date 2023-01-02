@@ -4,10 +4,11 @@ transfer_t as_Arma(int n, zpg_t zpg)
 {
     transfer_t tf;
     tf.size = n + 1;
-    tf.a = calloc(n, sizeof(double));
-    tf.b = calloc(n, sizeof(double));
-    int i;
+    tf.a = malloc(n * sizeof(double));
+    tf.b = malloc(n * sizeof(double));
     tf.b = poly(n, zpg.zero);
+
+    int i;
     for (i = 0; i < tf.size; i++)
         tf.b[i] = creal(tf.b[i] * zpg.gain);
 

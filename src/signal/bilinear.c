@@ -4,7 +4,7 @@ void bilinear(int n, zpg_t *zpg, double T)
 {
     int i;
     int z = n / 2;
-    double *x = calloc(n, sizeof(double));
+    double *x = malloc(n * sizeof(double));
     for (i = 0; i < n; i++)
         x[i] = (2 - zpg->pole[i] * T) / T;
 
@@ -23,8 +23,8 @@ void bilinear(int n, zpg_t *zpg, double T)
 
     double Zg = creal(zpg->gain * zero_prod / pole_prod);
 
-    double complex *Zp = calloc(n, sizeof(double complex));
-    double *Zz = calloc(n, sizeof(double));
+    double complex *Zp = malloc(n * sizeof(double complex));
+    double *Zz = malloc(n * sizeof(double));
     for (i = 0; i < n; i++)
     {
         Zp[i] = (2 + zpg->pole[i] * T) / (2 - zpg->pole[i] * T);

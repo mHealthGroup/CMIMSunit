@@ -4,7 +4,7 @@ void sftrans(int n, zpg_t *zpg, int n_W, double *W, uint8_t stop)
 {
     int C = 1;
     int i;
-    double complex *b = calloc(n, sizeof(double complex));
+    double complex *b = malloc(n * sizeof(double complex));
     double complex temp;
     int p = n;
     int z = 0;
@@ -28,7 +28,7 @@ void sftrans(int n, zpg_t *zpg, int n_W, double *W, uint8_t stop)
             double b_numerator = C * (Fh - Fl) / 2;
             for (i = 0; i < n; i++)
                 b[i] = b_numerator / zpg->pole[i];
-            zpg->pole = calloc(2 * n, sizeof(double complex));
+            zpg->pole = malloc((2 * n) * sizeof(double complex));
             for (i = 0; i < 2 * n; i++)
             {
                 temp = sqrt(pow(b[i], 2) - Fh * Fl) * I;
@@ -38,11 +38,11 @@ void sftrans(int n, zpg_t *zpg, int n_W, double *W, uint8_t stop)
             // double complex extend_value = sqrt(I * -1 * Fh * Fl);
             // double complex extend[2] = {extend_value, -1 * extend_value};
 
-            b = calloc(n, sizeof(double complex));
+            b = malloc(n * sizeof(double complex));
             for (i = 0; i < n; i++)
                 b[i] = (C * (Fh - Fl) / 2) / zpg->zero[i];
 
-            zpg->zero = calloc(2 * n, sizeof(double));
+            zpg->zero = malloc((2 * n) * sizeof(double));
             for (i = 0; i < 2 * n; i++)
             {
                 temp = sqrt(I * pow(b[i % n], 2) - Fh * Fl);
@@ -57,21 +57,13 @@ void sftrans(int n, zpg_t *zpg, int n_W, double *W, uint8_t stop)
             for (i = 0; i < n; i++)
                 b[i] = zpg->pole[i] * (Fh - Fl) / (2 * C);
 
-            zpg->pole = calloc(2 * n, sizeof(double complex));
+            zpg->pole = malloc((2 * n) * sizeof(double complex));
             for (i = 0; i < 2 * n; i++)
             {
                 temp = csqrt(cpow(b[i % n], 2) - Fh * Fl);
                 zpg->pole[i] = (i < n) ? b[i % n] + temp : b[i % n] - temp;
             }
 
-            // for (i = 0; i < n; i++)
-            //     b[i] = zpg->zero[i] * (Fh - Fl) / (2 * C);
-            // zpg->zero = calloc(2 * n, sizeof(double complex));
-            // for (i = 0; i < 2 * n; i++)
-            // {
-            //     temp = sqrt(I * pow(b[i % n], 2) - Fh * Fl);
-            //     zpg->zero[i] = (i < n) ? b[i % n] + temp : b[i % n] - temp;
-            // }
             zpg->zero = calloc(p, sizeof(double));
         }
     }
