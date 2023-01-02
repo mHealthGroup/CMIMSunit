@@ -1,16 +1,15 @@
 #include "mims_aggregate.h"
 
 // note: run integrate_for_mims on each column (x, y, z) separately
-static void integrate_for_mims(double *result, double *new_timestamps, uint16_t n_segments,
-                               uint16_t *segments, uint32_t n, double *float_timestamps, double *values,
+static void integrate_for_mims(double *result, double *new_timestamps, uint32_t n_segments,
+                               uint32_t *segments, uint32_t n, double *float_timestamps, double *values,
                                uint32_t n_threshold, uint8_t rectify)
 {
-  uint16_t segment_start_i, segment_end_i, segment_length;
-  uint32_t max_values, result_i;
+  uint32_t segment_start_i, segment_end_i, segment_length, max_values, result_i;
 
   result_i = 0;
   double auc_value;
-  for (uint16_t segment_i = 0; segment_i < n_segments; segment_i++)
+  for (uint32_t segment_i = 0; segment_i < n_segments; segment_i++)
   {
     segment_start_i = segments[segment_i];
     segment_end_i = (segment_i == (n_segments - 1)) ? n : segments[segment_i + 1];
@@ -19,7 +18,7 @@ static void integrate_for_mims(double *result, double *new_timestamps, uint16_t 
     if (segment_length >= (0.9 * n_threshold))
     {
       if (rectify) // absolute values for values > constant
-        for (uint16_t j = segment_start_i; j < segment_end_i; j++)
+        for (uint32_t j = segment_start_i; j < segment_end_i; j++)
           values[j] = (values[j] > -150) ? fabs(values[j]) : -200;
 
       // select different methods for integration

@@ -13,8 +13,8 @@ typedef struct
 {
     uint32_t size;
     double *timestamps; // seconds w/ decimal milliseconds
-    uint16_t n_segments;
-    uint16_t *segments;
+    uint32_t n_segments;
+    uint32_t *segments;
     double *x;
     double *y;
     double *z;

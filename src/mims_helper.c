@@ -40,8 +40,8 @@ uint16_t get_sampling_rate(dataframe_t *dataframe)
 static void compute_time_segments(
     dataframe_t *dataframe, double start_time, uint32_t break_size_in_seconds)
 {
-    dataframe->n_segments = (uint16_t)((dataframe->timestamps[dataframe->size - 1] - start_time) / (double)break_size_in_seconds) + 1;
-    dataframe->segments = malloc(dataframe->n_segments * sizeof(uint16_t));
+    dataframe->n_segments = (uint32_t)((dataframe->timestamps[dataframe->size - 1] - start_time) / (double)break_size_in_seconds) + 1;
+    dataframe->segments = malloc(dataframe->n_segments * sizeof(uint32_t));
 
     uint16_t segment_i = 0;
     uint32_t last_break_index = 0;

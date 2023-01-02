@@ -21,8 +21,8 @@
 
 typedef struct edges
 {
-    uint16_t n_left;
-    uint16_t n_right;
+    uint32_t n_left;
+    uint32_t n_right;
     uint32_t *left_start;
     uint32_t *left_end;
     uint32_t *right_start;

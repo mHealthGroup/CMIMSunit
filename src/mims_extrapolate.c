@@ -6,7 +6,7 @@
 #include "mims_helper.h"
 
 static values_dataframe_t extrapolate_interpolate(uint32_t n, double *oversampled_float_timestamps, double *values,
-                                                  double *marker, uint16_t points_ex_n, values_dataframe_t points_ex,
+                                                  double *marker, uint32_t points_ex_n, values_dataframe_t points_ex,
                                                   uint16_t sampling_rate, float confident)
 {
   uint32_t length_t_mark = 0;
@@ -335,7 +335,7 @@ static edges_t extrapolate_edges(uint32_t n, double *marker, float confident, do
   edges_t edges;
   edges.n_left = positive_left_end_n + negative_left_end_n;
   edges.left_end = malloc(edges.n_left * sizeof(uint32_t));
-  for (uint16_t i = 0; i < edges.n_left; i++)
+  for (uint32_t i = 0; i < edges.n_left; i++)
   {
     if (i < positive_left_end_n)
       edges.left_end[i] = positive_left_end[i];
@@ -347,7 +347,7 @@ static edges_t extrapolate_edges(uint32_t n, double *marker, float confident, do
 
   edges.n_right = positive_right_start_n + negative_right_start_n;
   edges.right_start = malloc(edges.n_right * sizeof(uint32_t));
-  for (uint16_t i = 0; i < edges.n_right; i++)
+  for (uint32_t i = 0; i < edges.n_right; i++)
   {
     if (i < positive_right_start_n)
       edges.right_start[i] = positive_right_start[i];
@@ -363,20 +363,20 @@ static edges_t extrapolate_edges(uint32_t n, double *marker, float confident, do
 
 static edges_t extrapolate_neighbor(uint32_t n, double *marker, double sampling_rate, float k, float confident)
 {
-  uint16_t n_neighbor = (uint16_t)(k * sampling_rate);
+  uint32_t n_neighbor = (uint32_t)(k * sampling_rate);
   edges_t edges = extrapolate_edges(n, marker, confident, sampling_rate);
 
   if (edges.n_left > 0)
   {
     edges.left_start = malloc(edges.n_left * sizeof(uint32_t));
-    for (uint16_t i = 0; i < edges.n_left; i++)
+    for (uint32_t i = 0; i < edges.n_left; i++)
       edges.left_start[i] = (edges.left_end[i] == -1) ? -1 : max(edges.left_end[i] - n_neighbor + 1, 1);
   }
 
   if (edges.n_right > 0)
   {
     edges.right_end = malloc(edges.n_right * sizeof(uint32_t));
-    for (uint16_t i = 0; i < edges.n_right; i++)
+    for (uint32_t i = 0; i < edges.n_right; i++)
       edges.right_end[i] = (edges.right_start[i] == -1) ? -1 : min(edges.right_start[i] + n_neighbor - 1, n);
   }
 
@@ -422,7 +422,7 @@ static values_dataframe_t extrapolate_fit(uint32_t n, double *oversampled_float_
   smooth_spline_model_t fitted_right;
   double *left_ex, *right_ex, *middle_t, point_ex, start_time, left_end, right_start;
   middle_t = malloc(sizeof(double));
-  for (uint16_t i = 0; i < neighbors.n_left; i++)
+  for (uint32_t i = 0; i < neighbors.n_left; i++)
   {
     fitted_left = fit_weighted(n, oversampled_float_timestamps, values, marker,
                                neighbors.left_start[i], neighbors.left_end[i],
