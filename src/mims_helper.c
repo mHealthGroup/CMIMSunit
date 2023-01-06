@@ -1,6 +1,6 @@
 #include "mims_helper.h"
 
-uint32_t get_break_size_in_seconds(uint16_t break_size, time_unit_t time_unit)
+static uint32_t get_break_size_in_seconds(uint16_t break_size, time_unit_t time_unit)
 {
     uint32_t factor;
     switch (time_unit)
@@ -23,20 +23,6 @@ uint32_t get_break_size_in_seconds(uint16_t break_size, time_unit_t time_unit)
     return break_size_in_seconds;
 }
 
-uint32_t parse_epoch_string(uint16_t break_size, time_unit_t time_unit, uint16_t sampling_rate)
-{
-    uint32_t num_seconds_in_epoch = get_break_size_in_seconds(break_size, time_unit);
-    uint32_t num_samples = num_seconds_in_epoch * sampling_rate;
-    return num_samples;
-}
-
-uint16_t get_sampling_rate(dataframe_t *dataframe)
-{
-    uint32_t duration_in_seconds = (uint32_t)(dataframe->timestamps[dataframe->size - 1] - dataframe->timestamps[0]);
-    uint16_t sampling_rate = dataframe->size / duration_in_seconds;
-    return sampling_rate;
-}
-
 static void compute_time_segments(
     dataframe_t *dataframe, double start_time, uint32_t break_size_in_seconds)
 {
@@ -55,6 +41,20 @@ static void compute_time_segments(
         }
     }
     return;
+}
+
+uint32_t parse_epoch_string(uint16_t break_size, time_unit_t time_unit, uint16_t sampling_rate)
+{
+    uint32_t num_seconds_in_epoch = get_break_size_in_seconds(break_size, time_unit);
+    uint32_t num_samples = num_seconds_in_epoch * sampling_rate;
+    return num_samples;
+}
+
+uint16_t get_sampling_rate(dataframe_t *dataframe)
+{
+    uint32_t duration_in_seconds = (uint32_t)(dataframe->timestamps[dataframe->size - 1] - dataframe->timestamps[0]);
+    uint16_t sampling_rate = dataframe->size / duration_in_seconds;
+    return sampling_rate;
 }
 
 // Segments the input sensor dataframe into epoch windows with length specified in break_size.

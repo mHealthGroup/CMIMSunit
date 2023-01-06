@@ -168,7 +168,7 @@ static const float bd0_scale[128 + 1][4] = {
 #define R_DT_0 (lower_tail ? R_D__0 : R_D__1)
 #define R_DT_1 (lower_tail ? R_D__1 : R_D__0)
 
-double lgammafn(double x);
+static double lgammafn(double x);
 
 /* If |x| > |k| * M_cutoff,  then  log[ exp(-x) * k^x ]	 =~=  -x */
 static const double M_cutoff = M_LN2 * DBL_MAX_EXP / DBL_EPSILON; /*=3.196577e18*/
@@ -231,7 +231,7 @@ logcf(double x, double i, double d,
 }
 
 /* Accurate calculation of log(1+x)-x, particularly for small x.  */
-double log1pmx(double x)
+static double log1pmx(double x)
 {
     static const double minLog1Value = -0.79149064;
 
@@ -260,7 +260,7 @@ double log1pmx(double x)
     }
 }
 
-double chebyshev_eval(double x, const double *a, const int n)
+static double chebyshev_eval(double x, const double *a, const int n)
 {
     double b0, b1, b2, twox;
     int i;
@@ -283,7 +283,7 @@ double chebyshev_eval(double x, const double *a, const int n)
     return (b0 - b2) * 0.5;
 }
 
-double lgammacor(double x)
+static double lgammacor(double x)
 {
     const static double algmcs[15] = {// below, nalgm = 5 ==> only the first 5 are used!
                                       +.1666389480451863247205729650822e+0,
@@ -325,12 +325,12 @@ double lgammacor(double x)
     return 1 / (x * 12);
 }
 
-int R_FINITE(double x)
+static int R_FINITE(double x)
 {
     return (!isnan(x) & (x != ML_POSINF) & (x != ML_NEGINF));
 }
 
-double sinpi(double x)
+static double sinpi(double x)
 {
     // #ifdef IEEE_754
     //     if (ISNAN(x))
@@ -355,7 +355,7 @@ double sinpi(double x)
     return sin(M_PI * x);
 }
 
-double stirlerr(double n)
+static double stirlerr(double n)
 {
 
 #define S0 0.083333333333333333333        /* 1/12 */
@@ -421,7 +421,7 @@ double stirlerr(double n)
     return ((S0 - (S1 - (S2 - (S3 - S4 / nn) / nn) / nn) / nn) / n);
 }
 
-double gammafn(double x)
+static double gammafn(double x)
 {
     const static double gamcs[42] = {
         +.8571195590989331421920062399942e-2,
@@ -618,7 +618,7 @@ double gammafn(double x)
     }
 }
 
-double lgammafn_sign(double x, int *sgn)
+static double lgammafn_sign(double x, int *sgn)
 {
     double ans, y, sinpiy;
 
@@ -707,18 +707,18 @@ Now UNNECESSARY: caught above */
     return ans;
 }
 
-double lgammafn(double x)
+static double lgammafn(double x)
 {
     return lgammafn_sign(x, NULL);
 }
 
-double fmax2(double x, double y)
+static double fmax2(double x, double y)
 {
     return (x < y) ? y : x;
 }
 
 /* Compute  log(gamma(a+1))  accurately also for small a (0 < a < 0.5). */
-double lgamma1p(double a)
+static double lgamma1p(double a)
 {
     if (fabs(a) >= 0.5)
         return lgammafn(a + 1);
@@ -795,7 +795,7 @@ double lgamma1p(double a)
  * without causing overflows and without throwing away large handfuls
  * of accuracy.
  */
-double logspace_add(double logx, double logy)
+static double logspace_add(double logx, double logy)
 {
     return fmax2(logx, logy) + log1p(exp(-fabs(logx - logy)));
 }
@@ -808,7 +808,7 @@ double logspace_add(double logx, double logy)
  * without causing overflows and without throwing away large handfuls
  * of accuracy.
  */
-double logspace_sub(double logx, double logy)
+static double logspace_sub(double logx, double logy)
 {
     return logx + R_Log1_Exp(logy - logx);
 }
@@ -830,7 +830,7 @@ double logspace_sub(double logx, double logy)
 #define LOG log
 #endif
 
-double logspace_sum(const double *logx, int n)
+static double logspace_sum(const double *logx, int n)
 {
     if (n == 0)
         return ML_NEGINF; // = log( sum(<empty>) )
@@ -851,7 +851,7 @@ double logspace_sum(const double *logx, int n)
     return Mx + (double)LOG(s);
 }
 
-void ebd0(double x, double M, double *yh, double *yl)
+static void ebd0(double x, double M, double *yh, double *yl)
 {
     const int Sb = 10;
     const double S = 1u << Sb; // = 2^10 = 1024
@@ -951,7 +951,7 @@ void ebd0(double x, double M, double *yh, double *yl)
     ADD1(M);
 }
 
-double dpois_raw(double x, double lambda, int log_p)
+static double dpois_raw(double x, double lambda, int log_p)
 {
     /*       x >= 0 ; integer for dpois(), but not e.g. for pgamma()!
         lambda >= 0
@@ -990,8 +990,7 @@ double dpois_raw(double x, double lambda, int log_p)
  *
  * and  dpois*(.., log_p = TRUE) :=  log( dpois*(..) )
  */
-static double
-dpois_wrap(double x_plus_1, double lambda, int log_p)
+static double dpois_wrap(double x_plus_1, double lambda, int log_p)
 {
     // #define R_D__0 (log_p ? ML_NEGINF : 0.)
     if (!R_FINITE(lambda))
@@ -1013,8 +1012,7 @@ dpois_wrap(double x_plus_1, double lambda, int log_p)
 /*
  * Abramowitz and Stegun 6.5.29 [right]
  */
-static double
-pgamma_smallx(double x, double alph, int lower_tail, int log_p)
+static double pgamma_smallx(double x, double alph, int lower_tail, int log_p)
 {
     double sum = 0, c = alph, n = 0, term;
 
@@ -1062,8 +1060,7 @@ pgamma_smallx(double x, double alph, int lower_tail, int log_p)
     }
 } /* pgamma_smallx() */
 
-static double
-pd_upper_series(double x, double y, int log_p)
+static double pd_upper_series(double x, double y, int log_p)
 {
     double term = x / y;
     double sum = term;
@@ -1087,8 +1084,7 @@ pd_upper_series(double x, double y, int log_p)
  *    scaled upper-tail F_{gamma}
  *  ~=  (y / d) * [1 +  (1-y)/d +  O( ((1-y)/d)^2 ) ]
  */
-static double
-pd_lower_cf(double y, double d)
+static double pd_lower_cf(double y, double d)
 {
     double f = 0.0 /* -Wall */, of, f0;
     double i, c2, c3, c4, a1, b1, a2, b2;
@@ -1168,8 +1164,7 @@ pd_lower_cf(double y, double d)
 } /* pd_lower_cf() */
 #undef NEEDED_SCALE
 
-static double
-pd_lower_series(double lambda, double y)
+static double pd_lower_series(double lambda, double y)
 {
     double term = 1, sum = 0;
 
@@ -1200,7 +1195,7 @@ pd_lower_series(double lambda, double y)
     return sum;
 } /* pd_lower_series() */
 
-double dnorm(double x, double mu, double sigma, int log_p)
+static double dnorm(double x, double mu, double sigma, int log_p)
 {
     if (sigma < 0)
         return NAN;
@@ -1270,8 +1265,7 @@ double dnorm(double x, double mu, double sigma, int log_p)
  *
  * Abramowitz & Stegun 26.2.12
  */
-static double
-dpnorm(double x, int lower_tail, double lp)
+static double dpnorm(double x, int lower_tail, double lp)
 {
     /*
      * So as not to repeat a pnorm call, we expect
@@ -1311,7 +1305,7 @@ dpnorm(double x, int lower_tail, double lp)
     }
 }
 
-void pnorm_both(double x, double *cum, double *ccum, int i_tail, int log_p)
+static void pnorm_both(double x, double *cum, double *ccum, int i_tail, int log_p)
 {
     /* i_tail in {0,1,2} means: "lower", "upper", or "both" :
        if(lower) return  *cum := P[X <= x]
@@ -1530,7 +1524,7 @@ void pnorm_both(double x, double *cum, double *ccum, int i_tail, int log_p)
     return;
 }
 
-double pnorm(double x, double mu, double sigma, int lower_tail, int log_p)
+static double pnorm(double x, double mu, double sigma, int lower_tail, int log_p)
 {
     double p, cp;
 
@@ -1643,7 +1637,7 @@ static double ppois_asymp(double x, double lambda, int lower_tail, int log_p)
     }
 } /* ppois_asymp() */
 
-double pgamma_raw(double x, double alph, int lower_tail, int log_p)
+static double pgamma_raw(double x, double alph, int lower_tail, int log_p)
 {
     /* Here, assume that  (x,alph) are not NA  &  alph > 0 . */
 
