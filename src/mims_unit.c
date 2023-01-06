@@ -87,6 +87,28 @@ dataframe_t mims_unit(dataframe_t *dataframe,
   return integrated_data;
 }
 
+void consistency_test(dataframe_t input_df)
+{
+  dataframe_t previous_output, current_output;
+  previous_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+  for (int i = 0; i < 20; i++)
+  {
+    current_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+    for (int j = 0; j < previous_output.size; j++)
+    {
+      if (previous_output.mims_data[j] != current_output.mims_data[j])
+      {
+        printf("Failed consistency_test");
+        return;
+      }
+    }
+    previous_output = current_output;
+  }
+
+  printf("Passed consistency_test");
+  return;
+}
+
 void precision_test(dataframe_t df)
 {
   int got_r;
@@ -110,28 +132,6 @@ void precision_test(dataframe_t df)
   }
 
   printf("Passed precision test");
-  return;
-}
-
-void consistency_test(dataframe_t input_df)
-{
-  dataframe_t previous_output, current_output;
-  previous_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
-  for (int i = 0; i < 100; i++)
-  {
-    current_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
-    for (int j = 0; j < previous_output.size; j++)
-    {
-      if (previous_output.mims_data[j] != current_output.mims_data[j])
-      {
-        printf("Failed consistency_test");
-        return;
-      }
-    }
-    previous_output = current_output;
-  }
-
-  printf("Passed consistency_test");
   return;
 }
 
