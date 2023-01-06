@@ -43,7 +43,7 @@ static void compute_time_segments(
     dataframe->n_segments = (uint32_t)((dataframe->timestamps[dataframe->size - 1] - start_time) / (double)break_size_in_seconds) + 1;
     dataframe->segments = malloc(dataframe->n_segments * sizeof(uint32_t));
 
-    uint16_t segment_i = 0;
+    uint32_t segment_i = 0;
     uint32_t last_break_index = 0;
     for (uint32_t i = 0; i < dataframe->size; i++)
     {
