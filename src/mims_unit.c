@@ -7,6 +7,35 @@ dataframe_t mims_unit(dataframe_t *dataframe,
                       float cutoff_low, float cutoff_high,
                       uint8_t allow_truncation)
 {
+  return custom_mims_unit(dataframe,
+                          dyanmic_range_low, dyanmic_range_high,
+                          break_size, time_unit,
+                          noise_level, k, spar,
+                          cutoff_low, cutoff_high,
+                          allow_truncation,
+                          NULL, NULL);
+}
+
+dataframe_t custom_mims_unit(dataframe_t *dataframe,
+                             int8_t dyanmic_range_low, int8_t dyanmic_range_high,
+                             uint16_t break_size, time_unit_t time_unit,
+                             float noise_level, float k, float spar,
+                             float cutoff_low, float cutoff_high,
+                             uint8_t allow_truncation, dataframe_t *before_df, dataframe_t *after_df)
+{
+  dataframe_t concatted_df;
+  if (before_df)
+  {
+    concatted_df = concat_dataframes(before_df, dataframe);
+    dataframe = &concatted_df;
+  }
+
+  if (after_df)
+  {
+    concatted_df = concat_dataframes(dataframe, after_df);
+    dataframe = &concatted_df;
+  }
+
   dataframe_t resampled_data = extrapolate(dataframe, dyanmic_range_low, dyanmic_range_high,
                                            noise_level, k, spar);
 
@@ -135,6 +164,49 @@ void precision_test(dataframe_t df)
   return;
 }
 
+void before_after_df_test(dataframe_t df)
+{
+  dataframe_t before_df = {
+      .size = 1,
+      .timestamps = malloc(sizeof(double)),
+      .x = malloc(sizeof(double)),
+      .y = malloc(sizeof(double)),
+      .z = malloc(sizeof(double))};
+  dataframe_t after_df = {
+      .size = 1,
+      .timestamps = malloc(sizeof(double)),
+      .x = malloc(sizeof(double)),
+      .y = malloc(sizeof(double)),
+      .z = malloc(sizeof(double))};
+  before_df.timestamps[0] = df.timestamps[0];
+  before_df.x[0] = df.x[0];
+  before_df.y[0] = df.y[0];
+  before_df.z[0] = df.z[0];
+
+  after_df.timestamps[0] = df.timestamps[df.size - 1];
+  after_df.x[0] = df.x[df.size - 1];
+  after_df.y[0] = df.y[df.size - 1];
+  after_df.z[0] = df.z[df.size - 1];
+
+  dataframe_t middle_df = {
+      .size = df.size - 2,
+      .timestamps = malloc((df.size - 2) * sizeof(double)),
+      .x = malloc((df.size - 2) * sizeof(double)),
+      .y = malloc((df.size - 2) * sizeof(double)),
+      .z = malloc((df.size - 2) * sizeof(double))};
+
+  for (int i = 0; i < middle_df.size; i++)
+  {
+    middle_df.timestamps[i] = df.timestamps[i + 1];
+    middle_df.x[i] = df.x[i + 1];
+    middle_df.y[i] = df.y[i + 1];
+    middle_df.z[i] = df.z[i + 1];
+  }
+
+  dataframe_t mims_data = custom_mims_unit(&middle_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1, &before_df, &after_df);
+  precision_test(mims_data);
+}
+
 int main(int argc, char **argv)
 {
   int n = 108000;
@@ -191,6 +263,7 @@ int main(int argc, char **argv)
   consistency_test(input_df);
   dataframe_t mims_data = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
   precision_test(mims_data);
+  before_after_df_test(input_df);
   // clock_t end = clock();
   // double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 

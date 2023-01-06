@@ -97,3 +97,34 @@ double *linspace(double start, double stop, uint32_t n)
 
     return sequence;
 }
+
+dataframe_t concat_dataframes(dataframe_t *df_1, dataframe_t *df_2)
+{
+    uint32_t n = df_1->size + df_2->size;
+    dataframe_t output_df = {
+        .size = n,
+        .timestamps = malloc(n * sizeof(double)),
+        .x = malloc(n * sizeof(double)),
+        .y = malloc(n * sizeof(double)),
+        .z = malloc(n * sizeof(double))};
+
+    for (int i = 0; i < n; i++)
+    {
+        if (i < df_1->size)
+        {
+            output_df.timestamps[i] = df_1->timestamps[i];
+            output_df.x[i] = df_1->x[i];
+            output_df.y[i] = df_1->y[i];
+            output_df.z[i] = df_1->z[i];
+        }
+        else
+        {
+            output_df.timestamps[i] = df_2->timestamps[i - df_1->size];
+            output_df.x[i] = df_2->x[i - df_1->size];
+            output_df.y[i] = df_2->y[i - df_1->size];
+            output_df.z[i] = df_2->z[i - df_1->size];
+        }
+    }
+
+    return output_df;
+}
