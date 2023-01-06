@@ -87,6 +87,54 @@ dataframe_t mims_unit(dataframe_t *dataframe,
   return integrated_data;
 }
 
+void precision_test(dataframe_t df)
+{
+  int got_r;
+  FILE *r_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/r_output.csv", "r");
+  double *r_output = malloc(df.size * sizeof(double));
+  for (int i = 0; i < df.size; i++)
+  {
+    got_r = fscanf(r_file, "%lf", &r_output[i]); // skip first line because it's the column name
+    if (got_r != 1)
+      break; // wrong number of tokens - maybe end of file
+  }
+  fclose(r_file);
+
+  for (int i = 0; i < df.size; i++)
+  {
+    if (fabs(df.mims_data[i] - r_output[i]) > 0.0001)
+    {
+      printf("Failed precision test");
+      return;
+    }
+  }
+
+  printf("Passed precision test");
+  return;
+}
+
+void consistency_test(dataframe_t input_df)
+{
+  dataframe_t previous_output, current_output;
+  previous_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+  for (int i = 0; i < 100; i++)
+  {
+    current_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+    for (int j = 0; j < previous_output.size; j++)
+    {
+      if (previous_output.mims_data[j] != current_output.mims_data[j])
+      {
+        printf("Failed consistency_test");
+        return;
+      }
+    }
+    previous_output = current_output;
+  }
+
+  printf("Passed consistency_test");
+  return;
+}
+
 int main(int argc, char **argv)
 {
   int n = 108000;
@@ -138,11 +186,13 @@ int main(int argc, char **argv)
   input_df.y = y;
   input_df.z = z;
 
-#include <time.h>
-  clock_t begin = clock();
+  // #include <time.h>
+  //   clock_t begin = clock();
+  consistency_test(input_df);
   dataframe_t mims_data = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
-  clock_t end = clock();
-  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  precision_test(mims_data);
+  // clock_t end = clock();
+  // double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
   return 0;
 }
