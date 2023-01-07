@@ -1,5 +1,22 @@
 #include "mims_unit.h"
 
+dataframe_t mims_unit_from_filename(char *input_filename,
+                                    int8_t dyanmic_range_low, int8_t dyanmic_range_high,
+                                    uint16_t break_size, time_unit_t time_unit,
+                                    float noise_level, float k, float spar,
+                                    float cutoff_low, float cutoff_high,
+                                    uint8_t allow_truncation)
+{
+  dataframe_t dataframe = read_csv(input_filename);
+  return custom_mims_unit(&dataframe,
+                          dyanmic_range_low, dyanmic_range_high,
+                          break_size, time_unit,
+                          noise_level, k, spar,
+                          cutoff_low, cutoff_high,
+                          allow_truncation,
+                          NULL, NULL);
+}
+
 dataframe_t mims_unit(dataframe_t *dataframe,
                       int8_t dyanmic_range_low, int8_t dyanmic_range_high,
                       uint16_t break_size, time_unit_t time_unit,
@@ -266,6 +283,11 @@ int main(int argc, char **argv)
   before_after_df_test(input_df);
   // clock_t end = clock();
   // double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+
+  dataframe_t mims_data = mims_unit_from_filename(
+      "/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/raw.csv",
+      -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+  precision_test(mims_data);
 
   return 0;
 }

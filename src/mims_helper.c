@@ -1,4 +1,5 @@
 #include "mims_helper.h"
+#include <string.h> // strtok
 
 static uint32_t get_break_size_in_seconds(uint16_t break_size, time_unit_t time_unit)
 {
@@ -127,4 +128,62 @@ dataframe_t concat_dataframes(dataframe_t *df_1, dataframe_t *df_2)
     }
 
     return output_df;
+}
+
+#define BUFFER_SIZE 65536
+static int count_lines(FILE *file)
+{
+    char buf[BUFFER_SIZE];
+    int counter = 0;
+    int i;
+    for (;;)
+    {
+        size_t res = fread(buf, 1, BUFFER_SIZE, file);
+        if (ferror(file))
+            return -1;
+
+        for (i = 0; i < res; i++)
+            if (buf[i] == '\n')
+                counter++;
+
+        if (feof(file))
+            break;
+    }
+
+    return counter;
+}
+
+dataframe_t read_csv(char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    int n = count_lines(file) - 1; // Exclude header row
+    rewind(file);
+    dataframe_t df = {
+        .size = n,
+        .timestamps = malloc(n * sizeof(double)),
+        .x = malloc(n * sizeof(double)),
+        .y = malloc(n * sizeof(double)),
+        .z = malloc(n * sizeof(double))};
+
+    char buffer[80];
+    char *token;
+    for (int i = -1; i < n; i++)
+    {
+        if (!fgets(buffer, 80, file))
+            break;
+        if (i == -1)
+            continue; // skip first line
+
+        token = strtok(buffer, ",");
+        df.timestamps[i] = atof(token);
+        token = strtok(NULL, ",");
+        df.x[i] = atof(token);
+        token = strtok(NULL, ",");
+        df.y[i] = atof(token);
+        token = strtok(NULL, ",");
+        df.z[i] = atof(token);
+    }
+
+    fclose(file);
+    return df;
 }

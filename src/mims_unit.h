@@ -45,6 +45,12 @@ typedef enum time_unit
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
+dataframe_t mims_unit_from_filename(char *input_filename,
+                                    int8_t dyanmic_range_low, int8_t dyanmic_range_high,
+                                    uint16_t break_size, time_unit_t time_unit,
+                                    float noise_level, float k, float spar,
+                                    float cutoff_low, float cutoff_high,
+                                    uint8_t allow_truncation);
 dataframe_t mims_unit(dataframe_t *dataframe,
                       int8_t dyanmic_range_low, int8_t dyanmic_range_high,
                       uint16_t break_size, time_unit_t time_unit,
