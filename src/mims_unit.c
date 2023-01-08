@@ -133,34 +133,40 @@ dataframe_t custom_mims_unit(dataframe_t *dataframe,
   return integrated_data;
 }
 
-void consistency_test(dataframe_t input_df)
+static dataframe_t consistency_test(char *input_filename)
 {
+  dataframe_t input_df = read_csv(input_filename);
   dataframe_t previous_output, current_output;
   previous_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
   for (int i = 0; i < 20; i++)
   {
-    current_output = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+    current_output = (i % 2)
+                         ? mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1)
+                         : mims_unit_from_filename(input_filename, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+
     for (int j = 0; j < previous_output.size; j++)
     {
       if (previous_output.mims_data[j] != current_output.mims_data[j])
       {
         printf("Failed consistency_test");
-        return;
+        return current_output;
       }
     }
     previous_output = current_output;
   }
 
   printf("Passed consistency_test");
-  return;
+  return current_output;
 }
 
-void precision_test(dataframe_t df)
+static void precision_test(dataframe_t *output_df, char *expected_output_filename)
 {
+  // Read expected outputs
   int got_r;
-  FILE *r_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/r_output.csv", "r");
-  double *r_output = malloc(df.size * sizeof(double));
-  for (int i = 0; i < df.size; i++)
+  int n = count_lines(expected_output_filename);
+  double *r_output = malloc(n * sizeof(double));
+  FILE *r_file = fopen(expected_output_filename, "r");
+  for (int i = 0; i < n; i++)
   {
     got_r = fscanf(r_file, "%lf", &r_output[i]); // skip first line because it's the column name
     if (got_r != 1)
@@ -168,9 +174,9 @@ void precision_test(dataframe_t df)
   }
   fclose(r_file);
 
-  for (int i = 0; i < df.size; i++)
+  for (int i = 0; i < output_df->size; i++)
   {
-    if (fabs(df.mims_data[i] - r_output[i]) > 0.0001)
+    if (fabs(output_df->mims_data[i] - r_output[i]) > 0.0001)
     {
       printf("Failed precision test");
       return;
@@ -181,8 +187,10 @@ void precision_test(dataframe_t df)
   return;
 }
 
-void before_after_df_test(dataframe_t df)
+static void before_after_df_test(char *input_filename, char *expected_output_filename)
 {
+  dataframe_t input_df = read_csv(input_filename);
+
   dataframe_t before_df = {
       .size = 1,
       .timestamps = malloc(sizeof(double)),
@@ -195,99 +203,60 @@ void before_after_df_test(dataframe_t df)
       .x = malloc(sizeof(double)),
       .y = malloc(sizeof(double)),
       .z = malloc(sizeof(double))};
-  before_df.timestamps[0] = df.timestamps[0];
-  before_df.x[0] = df.x[0];
-  before_df.y[0] = df.y[0];
-  before_df.z[0] = df.z[0];
+  before_df.timestamps[0] = input_df.timestamps[0];
+  before_df.x[0] = input_df.x[0];
+  before_df.y[0] = input_df.y[0];
+  before_df.z[0] = input_df.z[0];
 
-  after_df.timestamps[0] = df.timestamps[df.size - 1];
-  after_df.x[0] = df.x[df.size - 1];
-  after_df.y[0] = df.y[df.size - 1];
-  after_df.z[0] = df.z[df.size - 1];
+  after_df.timestamps[0] = input_df.timestamps[input_df.size - 1];
+  after_df.x[0] = input_df.x[input_df.size - 1];
+  after_df.y[0] = input_df.y[input_df.size - 1];
+  after_df.z[0] = input_df.z[input_df.size - 1];
 
   dataframe_t middle_df = {
-      .size = df.size - 2,
-      .timestamps = malloc((df.size - 2) * sizeof(double)),
-      .x = malloc((df.size - 2) * sizeof(double)),
-      .y = malloc((df.size - 2) * sizeof(double)),
-      .z = malloc((df.size - 2) * sizeof(double))};
+      .size = input_df.size - 2,
+      .timestamps = malloc((input_df.size - 2) * sizeof(double)),
+      .x = malloc((input_df.size - 2) * sizeof(double)),
+      .y = malloc((input_df.size - 2) * sizeof(double)),
+      .z = malloc((input_df.size - 2) * sizeof(double))};
 
   for (int i = 0; i < middle_df.size; i++)
   {
-    middle_df.timestamps[i] = df.timestamps[i + 1];
-    middle_df.x[i] = df.x[i + 1];
-    middle_df.y[i] = df.y[i + 1];
-    middle_df.z[i] = df.z[i + 1];
+    middle_df.timestamps[i] = input_df.timestamps[i + 1];
+    middle_df.x[i] = input_df.x[i + 1];
+    middle_df.y[i] = input_df.y[i + 1];
+    middle_df.z[i] = input_df.z[i + 1];
   }
 
   dataframe_t mims_data = custom_mims_unit(&middle_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1, &before_df, &after_df);
-  precision_test(mims_data);
+  precision_test(&mims_data, expected_output_filename);
+}
+
+void measure_runtime(char *input_filename)
+{
+#include <time.h>
+
+  dataframe_t input_df = read_csv(input_filename);
+  clock_t begin = clock();
+
+  mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
+
+  clock_t end = clock();
+  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  return;
 }
 
 int main(int argc, char **argv)
 {
-  int n = 108000;
-  // int n = 2016000;
-  // int m = 720;
+  char input_filename[66] = "/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/raw.csv";
+  char expected_output_filename[71] = "/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/r_output.csv";
 
-  int got1, got2, got3, got4;
+  // char filename[79] = "/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/timestamps.csv";
 
-  double *timestamps = malloc(n * sizeof(double));
-  double *x = malloc(n * sizeof(double));
-  double *y = malloc(n * sizeof(double));
-  double *z = malloc(n * sizeof(double));
-  // int *segments = malloc(m * sizeof(int));
-  FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/timestamps.csv", "r");
-  FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/x.csv", "r");
-  FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/y.csv", "r");
-  FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/z.csv", "r");
-
-  // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/timestamps.csv", "r");
-  // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/x.csv", "r");
-  // FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/y.csv", "r");
-  // FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/aditya_sleep/z.csv", "r");
-
-  // FILE *t_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/t.csv", "r");
-  // FILE *x_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/x.csv", "r");
-  // FILE *y_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/y.csv", "r");
-  // FILE *z_file = fopen("/Users/arytonhoi/Kode/mhealth/pymims/test-data/cmims/r/extrapolate_input/z.csv", "r");
-  for (int i = 0; i < n; i++)
-  {
-    got1 = fscanf(t_file, "%lf", &timestamps[i]);
-    timestamps[i] = timestamps[i] / pow(10, 9);
-    got2 = fscanf(x_file, "%lf", &x[i]);
-    got3 = fscanf(y_file, "%lf", &y[i]);
-    got4 = fscanf(z_file, "%lf", &z[i]);
-    if ((got1 + got2 + got3 + got4) != 4)
-      break; // wrong number of tokens - maybe end of file
-    if (x[i] != 0)
-      continue;
-  }
-  fclose(t_file);
-  fclose(x_file);
-  fclose(y_file);
-  fclose(z_file);
-
-  dataframe_t input_df;
-  input_df.size = n;
-  input_df.timestamps = timestamps;
-  input_df.x = x;
-  input_df.y = y;
-  input_df.z = z;
-
-  // #include <time.h>
-  //   clock_t begin = clock();
-  consistency_test(input_df);
-  dataframe_t mims_data = mims_unit(&input_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
-  precision_test(mims_data);
-  before_after_df_test(input_df);
-  // clock_t end = clock();
-  // double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-
-  dataframe_t mims_data = mims_unit_from_filename(
-      "/Users/arytonhoi/Kode/mhealth/cmims/data/mims_unit/test_2/raw.csv",
-      -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2, 5.0, 1);
-  precision_test(mims_data);
+  dataframe_t mims_data = consistency_test(input_filename);
+  precision_test(&mims_data, expected_output_filename);
+  before_after_df_test(input_filename, expected_output_filename);
+  // measure_runtime(input_filename);
 
   return 0;
 }

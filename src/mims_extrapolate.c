@@ -334,7 +334,7 @@ static edges_t extrapolate_edges(uint32_t n, double *marker, float confident, do
 
   edges_t edges;
   edges.n_left = positive_left_end_n + negative_left_end_n;
-  edges.left_end = malloc(edges.n_left * sizeof(uint32_t));
+  edges.left_end = malloc(edges.n_left * sizeof(int32_t));
   for (uint32_t i = 0; i < edges.n_left; i++)
   {
     if (i < positive_left_end_n)
@@ -346,7 +346,7 @@ static edges_t extrapolate_edges(uint32_t n, double *marker, float confident, do
   free(negative_left_end);
 
   edges.n_right = positive_right_start_n + negative_right_start_n;
-  edges.right_start = malloc(edges.n_right * sizeof(uint32_t));
+  edges.right_start = malloc(edges.n_right * sizeof(int32_t));
   for (uint32_t i = 0; i < edges.n_right; i++)
   {
     if (i < positive_right_start_n)
@@ -368,16 +368,16 @@ static edges_t extrapolate_neighbor(uint32_t n, double *marker, double sampling_
 
   if (edges.n_left > 0)
   {
-    edges.left_start = malloc(edges.n_left * sizeof(uint32_t));
+    edges.left_start = malloc(edges.n_left * sizeof(int32_t));
     for (uint32_t i = 0; i < edges.n_left; i++)
-      edges.left_start[i] = (edges.left_end[i] == -1) ? -1 : max(edges.left_end[i] - n_neighbor + 1, 1);
+      edges.left_start[i] = (edges.left_end[i] == -1) ? -1 : max((int)edges.left_end[i] - n_neighbor + 1, 1);
   }
 
   if (edges.n_right > 0)
   {
-    edges.right_end = malloc(edges.n_right * sizeof(uint32_t));
+    edges.right_end = malloc(edges.n_right * sizeof(int32_t));
     for (uint32_t i = 0; i < edges.n_right; i++)
-      edges.right_end[i] = (edges.right_start[i] == -1) ? -1 : min(edges.right_start[i] + n_neighbor - 1, n);
+      edges.right_end[i] = (edges.right_start[i] == -1) ? -1 : min((int)edges.right_start[i] + n_neighbor - 1, n);
   }
 
   return edges;

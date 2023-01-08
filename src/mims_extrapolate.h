@@ -23,10 +23,10 @@ typedef struct edges
 {
     uint32_t n_left;
     uint32_t n_right;
-    uint32_t *left_start;
-    uint32_t *left_end;
-    uint32_t *right_start;
-    uint32_t *right_end;
+    int32_t *left_start;
+    int32_t *left_end;
+    int32_t *right_start;
+    int32_t *right_end;
 } edges_t;
 
 typedef struct values_dataframe

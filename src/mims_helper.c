@@ -130,17 +130,21 @@ dataframe_t concat_dataframes(dataframe_t *df_1, dataframe_t *df_2)
     return output_df;
 }
 
-#define BUFFER_SIZE 65536
-static int count_lines(FILE *file)
+#define LINE_COUNT_BUFFER_SIZE 65535
+int count_lines(char *filename)
 {
-    char buf[BUFFER_SIZE];
+    FILE *file = fopen(filename, "r");
+    char buf[LINE_COUNT_BUFFER_SIZE];
     int counter = 0;
     int i;
     for (;;)
     {
-        size_t res = fread(buf, 1, BUFFER_SIZE, file);
+        size_t res = fread(buf, 1, LINE_COUNT_BUFFER_SIZE, file);
         if (ferror(file))
+        {
+            fclose(file);
             return -1;
+        }
 
         for (i = 0; i < res; i++)
             if (buf[i] == '\n')
@@ -150,14 +154,16 @@ static int count_lines(FILE *file)
             break;
     }
 
+    fclose(file);
     return counter;
 }
 
+#define CSV_LINE_BUFFER_SIZE 128
 dataframe_t read_csv(char *filename)
 {
+    int n = count_lines(filename) - 1; // Exclude header row
     FILE *file = fopen(filename, "r");
-    int n = count_lines(file) - 1; // Exclude header row
-    rewind(file);
+    // rewind(file);
     dataframe_t df = {
         .size = n,
         .timestamps = malloc(n * sizeof(double)),
@@ -165,16 +171,16 @@ dataframe_t read_csv(char *filename)
         .y = malloc(n * sizeof(double)),
         .z = malloc(n * sizeof(double))};
 
-    char buffer[80];
+    char line_buffer[CSV_LINE_BUFFER_SIZE];
     char *token;
     for (int i = -1; i < n; i++)
     {
-        if (!fgets(buffer, 80, file))
+        if (!fgets(line_buffer, CSV_LINE_BUFFER_SIZE, file))
             break;
         if (i == -1)
             continue; // skip first line
 
-        token = strtok(buffer, ",");
+        token = strtok(line_buffer, ",");
         df.timestamps[i] = atof(token);
         token = strtok(NULL, ",");
         df.x[i] = atof(token);
