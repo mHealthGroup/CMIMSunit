@@ -1,5 +1,4 @@
 build/*
-data/*
 
 CMakeFiles/*
 src/CMakeFiles/*
@@ -7,6 +6,7 @@ src/mims_unit
 *.cmake
 
 *.a
+*.csv
 *.bin
 *.d
 *.log
