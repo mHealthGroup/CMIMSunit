@@ -13,3 +13,4 @@ src/mims_unit
 .DS_Store
 *.log
 *.o
+.vscode

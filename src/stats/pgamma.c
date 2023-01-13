@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdint.h>
 /* Scalefactor:= (2^32)^8 = 2^256 = 1.157921e+77 */
 #define SQR(x) ((x) * (x))
 static const double scalefactor = SQR(SQR(SQR(4294967296.0)));
@@ -29,6 +29,11 @@ static const double scalefactor = SQR(SQR(SQR(4294967296.0)));
 #define M_2PI 0.636619772367581343076
 #define R_forceint(x) round(x)
 #define M_SQRT_32 5.656854249492380195206754896838
+
+#ifndef M_LN2
+#define M_LN2 0.693147180559945309417
+#define M_PI 3.14159265358979323846
+#endif
 
 static const float bd0_scale[128 + 1][4] = {
     {+0x1.62e430p-1, -0x1.05c610p-29, -0x1.950d88p-54, +0x1.d9cc02p-79}, /* 128: log(2048/1024.) */
