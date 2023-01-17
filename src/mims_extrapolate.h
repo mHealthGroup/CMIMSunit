@@ -36,6 +36,6 @@ typedef struct values_dataframe
     double *values;
 } values_dataframe_t;
 
-dataframe_t extrapolate(dataframe_t *df, int8_t r_low, int8_t r_high, float noise_level, float k, float spar);
+dataframe_t *extrapolate(dataframe_t *df, int8_t r_low, int8_t r_high, float noise_level, float k, float spar);
 
 #endif // _EXTRAPOLATE_H_

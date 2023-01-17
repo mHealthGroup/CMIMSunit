@@ -48,8 +48,8 @@ static void integrate_for_mims(double *result, double *new_timestamps, uint32_t 
   return;
 }
 
-dataframe_t aggregate(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit,
-                      uint8_t rectify, double start_time)
+dataframe_t *aggregate(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit,
+                       uint8_t rectify, double start_time)
 {
   // parse input argument epoch
   segment_data(dataframe, break_size, time_unit, start_time);
@@ -71,12 +71,13 @@ dataframe_t aggregate(dataframe_t *dataframe, uint16_t break_size, time_unit_t t
   integrate_for_mims(z_results, new_timestamps, dataframe->n_segments, dataframe->segments,
                      dataframe->size, dataframe->timestamps, dataframe->z, n_threshold, 1);
 
-  dataframe_t new_dataframe;
-  new_dataframe.size = dataframe->n_segments;
-  new_dataframe.timestamps = new_timestamps;
-  new_dataframe.x = x_results;
-  new_dataframe.y = y_results;
-  new_dataframe.z = z_results;
+  dataframe_t *new_dataframe = create_dataframe(
+      dataframe->n_segments,
+      new_timestamps,
+      x_results,
+      y_results,
+      z_results,
+      0, NULL, NULL);
 
   return new_dataframe;
 }

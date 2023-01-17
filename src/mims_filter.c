@@ -14,7 +14,7 @@ typedef struct
 
 // pass_type is always high (2)
 // filter type is always butter
-dataframe_t iir(dataframe_t *df, uint16_t sampling_rate, double *cutoff_freq, uint8_t order)
+dataframe_t *iir(dataframe_t *df, uint16_t sampling_rate, double *cutoff_freq, uint8_t order)
 {
   uint8_t cutoff_freq_n = 2;
   float nyquist = (float)sampling_rate / 2.0;
@@ -61,11 +61,13 @@ dataframe_t iir(dataframe_t *df, uint16_t sampling_rate, double *cutoff_freq, ui
   coeffs.a = coeffs_a;
   coeffs.b = coeffs_b;
 
-  dataframe_t result;
-  result.size = df->size;
-  result.x = signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->x);
-  result.y = signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->y);
-  result.z = signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->z);
+  dataframe_t *result = create_dataframe(
+      df->size,
+      NULL,
+      signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->x),
+      signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->y),
+      signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->z),
+      0, NULL, NULL);
 
   return result;
 }

@@ -540,18 +540,19 @@ static values_dataframe_t extrapolate_single_col(uint32_t n, double *timestamps,
   return dat_interp;
 }
 
-dataframe_t extrapolate(dataframe_t *df, int8_t r_low, int8_t r_high, float noise_level, float k, float spar)
+dataframe_t *extrapolate(dataframe_t *df, int8_t r_low, int8_t r_high, float noise_level, float k, float spar)
 {
-  dataframe_t result;
   values_dataframe_t x_col = extrapolate_single_col(df->size, df->timestamps, df->x, r_low, r_high, noise_level, k, spar);
   values_dataframe_t y_col = extrapolate_single_col(df->size, df->timestamps, df->y, r_low, r_high, noise_level, k, spar);
   values_dataframe_t z_col = extrapolate_single_col(df->size, df->timestamps, df->z, r_low, r_high, noise_level, k, spar);
 
-  result.size = x_col.size;
-  result.timestamps = x_col.timestamps;
-  result.x = x_col.values;
-  result.y = y_col.values;
-  result.z = z_col.values;
+  dataframe_t *result = create_dataframe(
+      x_col.size,
+      x_col.timestamps,
+      x_col.values,
+      y_col.values,
+      z_col.values,
+      0, NULL, NULL);
 
   return result;
 }

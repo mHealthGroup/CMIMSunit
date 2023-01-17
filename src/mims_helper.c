@@ -99,37 +99,6 @@ double *linspace(double start, double stop, uint32_t n)
     return sequence;
 }
 
-dataframe_t concat_dataframes(dataframe_t *df_1, dataframe_t *df_2)
-{
-    uint32_t n = df_1->size + df_2->size;
-    dataframe_t output_df = {
-        .size = n,
-        .timestamps = malloc(n * sizeof(double)),
-        .x = malloc(n * sizeof(double)),
-        .y = malloc(n * sizeof(double)),
-        .z = malloc(n * sizeof(double))};
-
-    for (int i = 0; i < n; i++)
-    {
-        if (i < df_1->size)
-        {
-            output_df.timestamps[i] = df_1->timestamps[i];
-            output_df.x[i] = df_1->x[i];
-            output_df.y[i] = df_1->y[i];
-            output_df.z[i] = df_1->z[i];
-        }
-        else
-        {
-            output_df.timestamps[i] = df_2->timestamps[i - df_1->size];
-            output_df.x[i] = df_2->x[i - df_1->size];
-            output_df.y[i] = df_2->y[i - df_1->size];
-            output_df.z[i] = df_2->z[i - df_1->size];
-        }
-    }
-
-    return output_df;
-}
-
 #define LINE_COUNT_BUFFER_SIZE 65535
 int count_lines(char *filename)
 {
@@ -159,17 +128,18 @@ int count_lines(char *filename)
 }
 
 #define CSV_LINE_BUFFER_SIZE 128
-dataframe_t read_csv(char *filename)
+dataframe_t *read_csv(char *filename)
 {
     int n = count_lines(filename) - 1; // Exclude header row
     FILE *file = fopen(filename, "r");
     // rewind(file);
-    dataframe_t df = {
-        .size = n,
-        .timestamps = malloc(n * sizeof(double)),
-        .x = malloc(n * sizeof(double)),
-        .y = malloc(n * sizeof(double)),
-        .z = malloc(n * sizeof(double))};
+    dataframe_t *df = create_dataframe(
+        n,
+        malloc(n * sizeof(double)),
+        malloc(n * sizeof(double)),
+        malloc(n * sizeof(double)),
+        malloc(n * sizeof(double)),
+        0, NULL, NULL);
 
     char line_buffer[CSV_LINE_BUFFER_SIZE];
     char *token;
@@ -181,15 +151,75 @@ dataframe_t read_csv(char *filename)
             continue; // skip first line
 
         token = strtok(line_buffer, ",");
-        df.timestamps[i] = atof(token);
+        df->timestamps[i] = atof(token);
         token = strtok(NULL, ",");
-        df.x[i] = atof(token);
+        df->x[i] = atof(token);
         token = strtok(NULL, ",");
-        df.y[i] = atof(token);
+        df->y[i] = atof(token);
         token = strtok(NULL, ",");
-        df.z[i] = atof(token);
+        df->z[i] = atof(token);
     }
 
     fclose(file);
     return df;
+}
+
+dataframe_t *create_dataframe(uint32_t size, double *timestamps, double *x, double *y, double *z,
+                              uint32_t n_segments, uint32_t *segments, double *mims_data)
+{
+    dataframe_t *dataframe = malloc(sizeof(dataframe_t));
+
+    dataframe->size = size;
+    dataframe->timestamps = timestamps;
+    dataframe->x = x;
+    dataframe->y = y;
+    dataframe->z = z;
+    dataframe->n_segments = n_segments;
+    dataframe->segments = segments;
+    dataframe->mims_data = mims_data;
+
+    return dataframe;
+}
+
+void free_dataframe(dataframe_t *df)
+{
+    free(df->timestamps);
+    free(df->x);
+    free(df->y);
+    free(df->z);
+    free(df->segments);
+    free(df->mims_data);
+    free(df);
+
+    return;
+}
+
+dataframe_t *concat_dataframes(dataframe_t *df_1, dataframe_t *df_2)
+{
+    uint32_t n = df_1->size + df_2->size;
+    double *timestamps = malloc(n * sizeof(double));
+    double *x = malloc(n * sizeof(double));
+    double *y = malloc(n * sizeof(double));
+    double *z = malloc(n * sizeof(double));
+
+    for (int i = 0; i < n; i++)
+    {
+        if (i < df_1->size)
+        {
+            timestamps[i] = df_1->timestamps[i];
+            x[i] = df_1->x[i];
+            y[i] = df_1->y[i];
+            z[i] = df_1->z[i];
+        }
+        else
+        {
+            timestamps[i] = df_2->timestamps[i - df_1->size];
+            x[i] = df_2->x[i - df_1->size];
+            y[i] = df_2->y[i - df_1->size];
+            z[i] = df_2->z[i - df_1->size];
+        }
+    }
+
+    dataframe_t *output_df = create_dataframe(n, timestamps, x, y, z, 0, NULL, NULL);
+    return output_df;
 }
