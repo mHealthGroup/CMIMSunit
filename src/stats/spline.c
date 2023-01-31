@@ -190,7 +190,7 @@ static void spline_coef(int method, int n, double *x, double *y,
     }
 }
 
-static Z_struct_t SplineCoef(int method, int n, double *x, int m, double *y)
+static Z_struct_t *SplineCoef(int method, int n, double *x, int m, double *y)
 {
     double *b = malloc(n * sizeof(double));
     double *c = malloc(n * sizeof(double));
@@ -202,14 +202,14 @@ static Z_struct_t SplineCoef(int method, int n, double *x, int m, double *y)
 
     spline_coef(method, n, x, y, b, c, d);
 
-    Z_struct_t ans;
-    ans.method = method;
-    ans.n = n;
-    ans.x = x;
-    ans.y = y;
-    ans.b = b;
-    ans.c = c;
-    ans.d = d;
+    Z_struct_t *ans = malloc(sizeof(Z_struct_t));
+    ans->method = method;
+    ans->n = n;
+    ans->x = x;
+    ans->y = y;
+    ans->b = b;
+    ans->c = c;
+    ans->d = d;
 
     return ans;
 }
@@ -267,12 +267,12 @@ static void spline_eval(int method, int nu, double *u, double *v,
     }
 }
 
-static double *SplineEval(int nu, double *xout, Z_struct_t z)
+static double *SplineEval(int nu, double *xout, Z_struct_t *z)
 {
-    int nx = z.n;
+    int nx = z->n;
 
     double *yout = malloc(nu * sizeof(double));
-    spline_eval(z.method, nu, xout, yout, nx, z.x, z.y, z.b, z.c, z.d);
+    spline_eval(z->method, nu, xout, yout, nx, z->x, z->y, z->b, z->c, z->d);
 
     return yout;
 }
@@ -281,8 +281,13 @@ static double *SplineEval(int nu, double *xout, Z_struct_t z)
 double *Spline(int x_len, double *x, int y_len, double *y,
                int xout_len, double *xout, int method)
 {
-    Z_struct_t z = SplineCoef(method, x_len, x, y_len, y);
+    Z_struct_t *z = SplineCoef(method, x_len, x, y_len, y);
     double *yout = SplineEval(xout_len, xout, z);
+
+    free(z->b);
+    free(z->c);
+    free(z->d);
+    free(z);
 
     return yout;
 }

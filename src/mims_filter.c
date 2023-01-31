@@ -37,37 +37,42 @@ dataframe_t *iir(dataframe_t *df, uint16_t sampling_rate, double *cutoff_freq, u
   // Note sampling rate always = 100hz after our resampling step, so cutoff_freq doesn't change.
   // With these hardcoded inputs, the pre-computed butter coefficients are:
 
-  transfer_t coeffs = {.size = 9};
-  double coeffs_a[9] =
-      {1.0,
-       -7.1989557602839946,
-       22.71024005695034,
-       -41.012138781845756,
-       46.37860384275109,
-       -33.634144664989293,
-       15.276672513261936,
-       -3.9733824787545187,
-       0.4531052730785417};
-  double coeffs_b[9] =
-      {0.00035884079585594785,
-       0,
-       -0.0014353631834237914,
-       0,
-       0.0021530447751356872,
-       0,
-       -0.0014353631834237914,
-       0,
-       0.00035884079585594785};
-  coeffs.a = coeffs_a;
-  coeffs.b = coeffs_b;
+  transfer_t *coeffs = malloc(sizeof(transfer_t));
+  coeffs->size = 9;
+  coeffs->a = malloc(coeffs->size * sizeof(double));
+  coeffs->b = malloc(coeffs->size * sizeof(double));
+
+  coeffs->a[0] = 1.0;
+  coeffs->a[1] = -7.1989557602839946;
+  coeffs->a[2] = 22.71024005695034;
+  coeffs->a[3] = -41.012138781845756;
+  coeffs->a[4] = 46.37860384275109;
+  coeffs->a[5] = -33.634144664989293;
+  coeffs->a[6] = 15.276672513261936;
+  coeffs->a[7] = -3.9733824787545187;
+  coeffs->a[8] = 0.4531052730785417;
+
+  coeffs->b[0] = 0.00035884079585594785;
+  coeffs->b[1] = 0;
+  coeffs->b[2] = -0.0014353631834237914;
+  coeffs->b[3] = 0;
+  coeffs->b[4] = 0.0021530447751356872;
+  coeffs->b[5] = 0;
+  coeffs->b[6] = -0.0014353631834237914;
+  coeffs->b[7] = 0;
+  coeffs->b[8] = 0.00035884079585594785;
 
   dataframe_t *result = create_dataframe(
       df->size,
       NULL,
-      signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->x),
-      signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->y),
-      signal_filter(coeffs.size, coeffs.b, coeffs.size, coeffs.a, df->size, df->z),
+      signal_filter(coeffs->size, coeffs->b, coeffs->size, coeffs->a, df->size, df->x),
+      signal_filter(coeffs->size, coeffs->b, coeffs->size, coeffs->a, df->size, df->y),
+      signal_filter(coeffs->size, coeffs->b, coeffs->size, coeffs->a, df->size, df->z),
       0, NULL, NULL);
+
+  free(coeffs->a);
+  free(coeffs->b);
+  free(coeffs);
 
   return result;
 }

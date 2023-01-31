@@ -57,17 +57,18 @@ static void R_approxfun(double *x, double *y, uint32_t nxy,
                         double *xout, double *yout, uint32_t nout, uint8_t method,
                         double yleft, double yright, double f, uint8_t na_rm)
 {
-    appr_meth M = {0.0, 0.0, 0.0, 0.0, 0}; /* -Wall */
+    appr_meth *M = malloc(sizeof(appr_meth)); /* -Wall */
+    M->ylow = yleft;
+    M->yhigh = yright;
+    M->f1 = 1 - f;
+    M->f2 = f;
+    M->kind = method;
+    M->na_rm = na_rm;
 
-    M.f2 = f;
-    M.f1 = 1 - f;
-    M.kind = method;
-    M.ylow = yleft;
-    M.yhigh = yright;
-    M.na_rm = na_rm;
-    uint32_t i;
-    for (i = 0; i < nout; i++)
-        yout[i] = isnan(xout[i]) ? xout[i] : approx1(xout[i], x, y, nxy, &M);
+    for (uint32_t i = 0; i < nout; i++)
+        yout[i] = isnan(xout[i]) ? xout[i] : approx1(xout[i], x, y, nxy, M);
+
+    free(M);
 }
 
 static double *C_Approx(double *x, double *y, uint32_t nxy, double *xout, uint32_t nout, uint8_t method,
@@ -81,11 +82,14 @@ static double *C_Approx(double *x, double *y, uint32_t nxy, double *xout, uint32
 // approx func from
 // https://github.com/wch/r-source/blob/79298c499218846d14500255efd622b5021c10ec/src/library/stats/R/approx.R
 // "linear" method
-approx_output_t approx(uint32_t n, double *x, double *y, uint32_t nout)
+approx_output_t *approx(uint32_t n, double *x, double *y, uint32_t nout)
 {
     double *xout = linspace(x[0], x[n - 1], nout);
     double *yout = C_Approx(x, y, n, xout, nout, 1, NAN, NAN, 0, 1);
 
-    approx_output_t output = {.n = nout, .x = xout, .y = yout};
+    approx_output_t *output = malloc(sizeof(approx_output_t));
+    output->n = nout;
+    output->x = xout;
+    output->y = yout;
     return output;
 }

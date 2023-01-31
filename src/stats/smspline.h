@@ -7,6 +7,19 @@
 
 typedef struct
 {
+    double *coef;
+    double *ty;
+    double *lev;
+    double spar;
+    double *parms;
+    double *crit;
+    int *iparms;
+    int *ier;
+    double *scrtch;
+} fit_t;
+
+typedef struct
+{
     double *x;
     double *y;
     double *w;
@@ -18,13 +31,14 @@ typedef struct
     uint8_t no_weights;
     double *lev;
     double cv_crit;
-    // double pen_crit;
+    // double pen_crit; // Unused
     double *crit;
     double df;
     double spar;
     double ratio;
     double lambda;
-    // int *iparms;
+    // int *iparms; // Unused
+    fit_t *fit;
     double *fit_knot;
     int fit_nk;
     double fit_min;
@@ -32,7 +46,8 @@ typedef struct
     double *fit_coef;
 } smooth_spline_model_t;
 
-smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar);
-double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len, int deriv);
+smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar);
+double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len, int deriv);
+void free_smooth_spline_model(smooth_spline_model_t *model);
 
 #endif // _STATS_SMSPLINE_H_

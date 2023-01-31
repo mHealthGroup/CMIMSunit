@@ -14,6 +14,6 @@ typedef struct
     double *y;
 } approx_output_t;
 
-approx_output_t approx(uint32_t n, double *x, double *y, uint32_t nout);
+approx_output_t *approx(uint32_t n, double *x, double *y, uint32_t nout);
 
 #endif // _STATS_APPROX_H_

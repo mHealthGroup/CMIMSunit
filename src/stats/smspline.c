@@ -10,19 +10,6 @@ typedef struct
     uint8_t trace;
 } contr_sp_t;
 
-typedef struct
-{
-    double *coef;
-    double *ty;
-    double *lev;
-    double spar;
-    double *parms;
-    double *crit;
-    int *iparms;
-    int *ier;
-    double *scrtch;
-} fit_t;
-
 static double iqr(int n, double *x)
 {
     float index[2] = {1 + (n - 1) * 0.25, 1 + (n - 1) * 0.75};
@@ -1414,18 +1401,43 @@ static double *bvalus(int n, double *knot, double *coef, int nk, double *x, doub
     return s;
 }
 
-smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar)
+void free_smooth_spline_model(smooth_spline_model_t *model)
+{
+    // free(model->x);          // Shouldn't free sm_spline_coef inputs
+    free(model->y);
+    // free(model->w);          // Shouldn't free sm_spline_coef inputs
+    free(model->yin);
+    // free(model->data_x);     // Shouldn't free sm_spline_coef inputs
+    // free(model->data_y);     // Shouldn't free sm_spline_coef inputs
+    // free(model->data_w);     // Shouldn't free sm_spline_coef inputs
+    free(model->fit_knot);
+
+    // free fit_t pointers
+    fit_t *fit = model->fit;
+    free(fit->coef);
+    free(fit->lev);
+    free(fit->parms);
+    free(fit->crit);
+    free(fit->iparms);
+    free(fit->ier);
+    free(fit->scrtch);
+
+    free(fit);
+    free(model);
+}
+
+smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar)
 {
     int i;
     double tol = 1e-6 * iqr(n, x);
 
-    contr_sp_t contr_sp;
-    contr_sp.low = -1.5;
-    contr_sp.high = 1.5;
-    contr_sp.tol = 1e-4;
-    contr_sp.eps = 2e-8;
-    contr_sp.maxit = 500;
-    contr_sp.trace = 0;
+    contr_sp_t *contr_sp = malloc(sizeof(contr_sp_t));
+    contr_sp->low = -1.5;
+    contr_sp->high = 1.5;
+    contr_sp->tol = 1e-4;
+    contr_sp->eps = 2e-8;
+    contr_sp->maxit = 500;
+    contr_sp->trace = 0;
 
     uint8_t no_wgts = (w_len == 0);
     if (no_wgts)
@@ -1550,9 +1562,13 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     // double *eps = &contr_sp.eps;
     double Ratio = -1.0;
 
-    double crit[1] = {0};
-    int iparms[4] = {icrit, ispar, contr_sp.maxit, spar_is_lambda};
-    int ier[1] = {0};
+    double *crit = calloc(1, sizeof(double));
+    int *ier = calloc(1, sizeof(int));
+    int *iparms = malloc(4 * sizeof(int));
+    iparms[0] = icrit;
+    iparms[1] = ispar;
+    iparms[2] = contr_sp->maxit;
+    iparms[3] = spar_is_lambda;
     double *scrtch = malloc((18 * nk + 1) * sizeof(double));
 
     int penalty = 1;
@@ -1563,71 +1579,71 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     }
 
     rbart(
-        &penalty,       // penalt
-        &dofoff,        // dofoff
-        xbar,           // xs
-        ybar,           // ys
-        ws,             // ws
-        &yssw,          // ssw
-        nx,             // n
-        knot,           // knot
-        nk,             // nk
-        coef,           // coef
-        ty,             // sz
-        lev,            // lev
-        crit,           // crit
-        iparms,         // iparms
-        &spar,          // spar
-        &contr_sp.low,  // lspar
-        &contr_sp.high, // uspar
-        &contr_sp.tol,  // tol
-        &contr_sp.eps,  // eps
-        &Ratio,         // Ratio
-        scrtch,         // scrtch
-        4,              // ld4
-        1,              // ldnk
-        ier             // ier
+        &penalty,        // penalt
+        &dofoff,         // dofoff
+        xbar,            // xs
+        ybar,            // ys
+        ws,              // ws
+        &yssw,           // ssw
+        nx,              // n
+        knot,            // knot
+        nk,              // nk
+        coef,            // coef
+        ty,              // sz
+        lev,             // lev
+        crit,            // crit
+        iparms,          // iparms
+        &spar,           // spar
+        &contr_sp->low,  // lspar
+        &contr_sp->high, // uspar
+        &contr_sp->tol,  // tol
+        &contr_sp->eps,  // eps
+        &Ratio,          // Ratio
+        scrtch,          // scrtch
+        4,               // ld4
+        1,               // ldnk
+        ier              // ier
     );
 
-    double parms[5] = {contr_sp.low,
-                       contr_sp.high,
-                       contr_sp.tol,
-                       contr_sp.eps,
-                       Ratio};
+    double *parms = malloc(5 * sizeof(double));
+    parms[0] = contr_sp->low;
+    parms[1] = contr_sp->high;
+    parms[2] = contr_sp->tol;
+    parms[3] = contr_sp->eps;
+    parms[4] = Ratio;
 
-    fit_t fit;
-    fit.coef = coef;     // double *coef;
-    fit.ty = ty;         // double *ty;
-    fit.lev = lev;       // double *lev;
-    fit.spar = spar;     // double *spar;
-    fit.parms = parms;   // double *parms;
-    fit.crit = crit;     // double *crit;
-    fit.iparms = iparms; // int *iparms;
-    fit.ier = ier;       // int *ier;
-    fit.scrtch = scrtch; // double *scrtch;
+    fit_t *fit = malloc(sizeof(fit_t));
+    fit->coef = coef;     // double *coef;
+    fit->ty = ty;         // double *ty;
+    fit->lev = lev;       // double *lev;
+    fit->spar = spar;     // double *spar;
+    fit->parms = parms;   // double *parms;
+    fit->crit = crit;     // double *crit;
+    fit->iparms = iparms; // int *iparms;
+    fit->ier = ier;       // int *ier;
+    fit->scrtch = scrtch; // double *scrtch;
 
-    lev = fit.lev;
     double df = 0;
     for (i = 0; i < nx; i++)
     {
-        df += lev[i];
+        df += fit->lev[i];
     }
 
-    smooth_spline_model_t model;
-    if (fit.ier[0] > 0)
+    smooth_spline_model_t *model = malloc(sizeof(smooth_spline_model_t));
+    if (fit->ier[0] > 0)
     {
-        uint8_t sml = fit.spar < 0.5;
+        uint8_t sml = fit->spar < 0.5;
         if (spar_is_lambda || sml)
         {
             return model;
         }
         else
         {
-            fit.ty = malloc(nx * sizeof(double));
+            fit->ty = malloc(nx * sizeof(double));
             double y_mean = mean(nx, y);
             for (i = 0; i < n; i++)
             {
-                fit.ty[i] = y_mean;
+                fit->ty[i] = y_mean;
             }
             df = 1;
         }
@@ -1637,7 +1653,7 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     double *r = malloc(n * sizeof(double));
     for (i = 0; i < n; i++)
     {
-        r[i] = y[i] - fit.ty[i];
+        r[i] = y[i] - fit->ty[i];
     }
     double *r_squared = malloc(n * sizeof(double));
     for (i = 0; i < n; i++)
@@ -1647,32 +1663,35 @@ smooth_spline_model_t sm_spline_coef(int n, double *x, double *y, int w_len, dou
     double cv_crit_div = 1 - (df_offset + penalty * df) / (double)n;
     double cv_crit = weighted_avg(n, r_squared, w) / (cv_crit_div * cv_crit_div);
 
-    model.x = ux;                // double *x;          n
-    model.y = fit.ty;            // double *y;          n
-    model.w = wbar;              // double *w;          n
-    model.yin = ybar;            // double *yin;        n
-    model.tol = tol;             // double tol;
-    model.data_x = x;            // double *data_x;     n
-    model.data_y = y;            // double *data_y;     n
-    model.data_w = w;            // double *data_w;     n
-    model.no_weights = no_wgts;  // uint8_t no_weights;
-    model.lev = lev;             // double *lev;        nx
-    model.cv_crit = cv_crit;     // double cv_crit;
-    model.crit = fit.crit;       // double* crit;
-    model.df = df;               // double df;
-    model.spar = fit.spar;       // double spar;
-    model.ratio = fit.parms[4];  // double ratio;
-    model.lambda = fit.parms[0]; // double lambda;
+    model->x = ux;               // double *x;          n
+    model->y = fit->ty;          // double *y;          n
+    model->w = wbar;             // double *w;          n
+    model->yin = ybar;           // double *yin;        n
+    model->tol = tol;            // double tol;
+    model->data_x = x;           // double *data_x;     n
+    model->data_y = y;           // double *data_y;     n
+    model->data_w = w;           // double *data_w;     n
+    model->no_weights = no_wgts; // uint8_t no_weights;
+    model->lev = fit->lev;       // double *lev;        nx
+    model->cv_crit = cv_crit;    // double cv_crit;
+    model->df = df;              // double df;
     // fit
-    model.fit_knot = knot;
-    model.fit_nk = nk;
-    model.fit_min = ux[0];
-    model.fit_range = r_ux;
-    model.fit_coef = fit.coef;
+    model->fit = fit;
+    model->fit_coef = fit->coef;
+    model->crit = fit->crit;       // double* crit;
+    model->spar = fit->spar;       // double spar;
+    model->ratio = fit->parms[4];  // double ratio;
+    model->lambda = fit->parms[0]; // double lambda;
+    model->fit_knot = knot;
+    model->fit_nk = nk;
+    model->fit_min = ux[0];
+    model->fit_range = r_ux;
+
+    free(contr_sp);
     return model;
 }
 
-double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len, int deriv)
+double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len, int deriv)
 {
     int i;
     double *xs = malloc(x_len * sizeof(double));
@@ -1687,8 +1706,8 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
 
     for (i = 0; i < x_len; i++)
     {
-        xs[i] = (x[i] - model.fit_min) / model.fit_range; // x scaled to [0,1]
-        if (xs[i] < 0)                                    // extrap_left[i] = (xs[i] < 0) ? 1 : 0;
+        xs[i] = (x[i] - model->fit_min) / model->fit_range; // x scaled to [0,1]
+        if (xs[i] < 0)                                      // extrap_left[i] = (xs[i] < 0) ? 1 : 0;
         {
             extrap_left[i] = 1;
             any_extrap_left = 1;
@@ -1718,9 +1737,9 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
         }
         double *bvalus_result = bvalus(
             (int)n,
-            model.fit_knot,
-            model.fit_coef,
-            (int)model.fit_nk,
+            model->fit_knot,
+            model->fit_coef,
+            (int)model->fit_nk,
             bvalus_xs,
             malloc(n * sizeof(double)),
             (int)deriv);
@@ -1738,7 +1757,7 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
 
     if (n < x_len)
     {
-        double xrange[2] = {model.fit_min, model.fit_min + model.fit_range};
+        double xrange[2] = {model->fit_min, model->fit_min + model->fit_range};
         double *end_model_fit = malloc(2 * sizeof(double));
         double *end_slopes = malloc(2 * sizeof(double));
 
@@ -1746,8 +1765,8 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
         {
             end_model_fit = predict_smooth_spline(model, xrange, 2, 0);
             end_slopes = predict_smooth_spline(model, xrange, 2, 1);
-            end_slopes[0] *= model.fit_range;
-            end_slopes[1] *= model.fit_range;
+            end_slopes[0] *= model->fit_range;
+            end_slopes[1] *= model->fit_range;
 
             if (any_extrap_left)
             {
@@ -1770,8 +1789,8 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
         else if (deriv == 1)
         {
             end_slopes = predict_smooth_spline(model, xrange, 2, 1);
-            end_slopes[0] *= model.fit_range;
-            end_slopes[1] *= model.fit_range;
+            end_slopes[0] *= model->fit_range;
+            end_slopes[1] *= model->fit_range;
 
             for (i = 0; i < x_len; i++)
             {
@@ -1792,7 +1811,7 @@ double *predict_smooth_spline(smooth_spline_model_t model, double *x, int x_len,
     }
     if (deriv > 0)
         for (i = 0; i < x_len; i++)
-            y[i] /= pow(model.fit_range, deriv);
+            y[i] /= pow(model->fit_range, deriv);
 
     return y;
 }

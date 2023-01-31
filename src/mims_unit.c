@@ -93,6 +93,7 @@ dataframe_t *custom_mims_unit(dataframe_t *dataframe,
     resampled_data->y[normal_rows[i]] = filtered_data->y[i];
     resampled_data->z[normal_rows[i]] = filtered_data->z[i];
   }
+  free(normal_rows);
 
   // Compute the AUC
   dataframe_t *integrated_data = aggregate(resampled_data, break_size, time_unit,
