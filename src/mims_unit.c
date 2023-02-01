@@ -8,13 +8,14 @@ dataframe_t *mims_unit_from_filename(char *input_filename,
                                      uint8_t allow_truncation)
 {
   dataframe_t *dataframe = read_csv(input_filename);
-  return custom_mims_unit(dataframe,
-                          dyanmic_range_low, dyanmic_range_high,
-                          break_size, time_unit,
-                          noise_level, k, spar,
-                          cutoff_low, cutoff_high,
-                          allow_truncation,
-                          NULL, NULL);
+  dataframe_t *output = custom_mims_unit(dataframe,
+                                         dyanmic_range_low, dyanmic_range_high,
+                                         break_size, time_unit,
+                                         noise_level, k, spar,
+                                         cutoff_low, cutoff_high,
+                                         allow_truncation);
+  free_dataframe(dataframe);
+  return output;
 }
 
 dataframe_t *mims_unit(dataframe_t *dataframe,
@@ -29,8 +30,36 @@ dataframe_t *mims_unit(dataframe_t *dataframe,
                           break_size, time_unit,
                           noise_level, k, spar,
                           cutoff_low, cutoff_high,
-                          allow_truncation,
-                          NULL, NULL);
+                          allow_truncation);
+}
+
+dataframe_t *custom_mims_unit_before_after_dataframe(dataframe_t *dataframe,
+                                                     int8_t dyanmic_range_low, int8_t dyanmic_range_high,
+                                                     uint16_t break_size, time_unit_t time_unit,
+                                                     float noise_level, float k, float spar,
+                                                     float cutoff_low, float cutoff_high,
+                                                     uint8_t allow_truncation,
+                                                     dataframe_t *before_df, dataframe_t *after_df)
+{
+  if (before_df)
+    dataframe = concat_dataframes(before_df, dataframe);
+
+  if (after_df)
+  {
+    dataframe_t *old_dataframe = dataframe;
+    dataframe = concat_dataframes(old_dataframe, after_df);
+    if (before_df)
+      free_dataframe(old_dataframe);
+  }
+
+  dataframe_t *output = custom_mims_unit(dataframe,
+                                         dyanmic_range_low, dyanmic_range_high,
+                                         break_size, time_unit,
+                                         noise_level, k, spar,
+                                         cutoff_low, cutoff_high,
+                                         allow_truncation);
+  free_dataframe(dataframe);
+  return output;
 }
 
 dataframe_t *custom_mims_unit(dataframe_t *dataframe,
@@ -38,14 +67,8 @@ dataframe_t *custom_mims_unit(dataframe_t *dataframe,
                               uint16_t break_size, time_unit_t time_unit,
                               float noise_level, float k, float spar,
                               float cutoff_low, float cutoff_high,
-                              uint8_t allow_truncation, dataframe_t *before_df, dataframe_t *after_df)
+                              uint8_t allow_truncation)
 {
-  if (before_df)
-    dataframe = concat_dataframes(before_df, dataframe);
-
-  if (after_df)
-    dataframe = concat_dataframes(dataframe, after_df);
-
   dataframe_t *resampled_data = extrapolate(dataframe, dyanmic_range_low, dyanmic_range_high,
                                             noise_level, k, spar);
 

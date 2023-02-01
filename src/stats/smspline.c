@@ -487,6 +487,10 @@ static void sgram(double *sg0, double *sg1, double *sg2, double *sg3, double *tb
         }
     }
 
+    free(yw1);
+    free(yw2);
+    free(vnikx);
+    free(work);
     return;
 }
 
@@ -525,6 +529,8 @@ static void stxwx(
             }
             else
             {
+                free(vnikx);
+                free(work);
                 return;
             }
         }
@@ -552,6 +558,9 @@ static void stxwx(
         y[*j - 1] = y[*j - 1] + pow(w[i - 1], 2) * z[i - 1] * vnikx[4 - 1];
         hs0[*j - 1] = hs0[*j - 1] + pow(w[i - 1], 2) * pow(vnikx[4 - 1], 2);
     }
+
+    free(vnikx);
+    free(work);
     return;
 }
 
@@ -835,6 +844,10 @@ static double bvalue(double *t, double *bcoef, int n, int k, double x, int jderi
     }
 
     bvalue = aj[1 - 1];
+
+    free(aj);
+    free(dm);
+    free(dp);
     return bvalue;
 }
 
@@ -932,6 +945,10 @@ static void sinerp(
             }
         }
     }
+    free(wjm3);
+    free(wjm2);
+    free(wjm1);
+    return;
 }
 
 static void sslvrg(int *penalt, int *dofoff,
@@ -1076,6 +1093,10 @@ static void sslvrg(int *penalt, int *dofoff,
             }
         }
     }
+
+    free(vnikx);
+    free(work);
+    return;
 }
 
 static void sbart(int *penalt, int *dofoff,
@@ -1180,6 +1201,9 @@ static void sbart(int *penalt, int *dofoff,
         SSPLINE_COMP(*spar);
         /* got through check 2 */
         *Ratio = ratio;
+
+        free(deltal);
+        free(deltar);
         return;
     }
 
@@ -1320,6 +1344,9 @@ L_End:
     *Ratio = ratio;
     *spar = x;
     *crit = fx;
+
+    free(deltal);
+    free(deltar);
     return;
 }
 
@@ -1538,6 +1565,7 @@ smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, do
     {
         knot[i] = mid[i - 3];
     }
+    free(mid);
     for (i = nknots + 3; i < nknots + 6; i++)
     {
         knot[i] = xbar[nx - 1];
@@ -1604,6 +1632,8 @@ smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, do
         1,               // ldnk
         ier              // ier
     );
+    free(xbar);
+    free(ws);
 
     double *parms = malloc(5 * sizeof(double));
     parms[0] = contr_sp->low;
@@ -1650,18 +1680,20 @@ smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, do
     }
 
     // cv is false, not none
-    double *r = malloc(n * sizeof(double));
-    for (i = 0; i < n; i++)
-    {
-        r[i] = y[i] - fit->ty[i];
-    }
+    // double *r = malloc(n * sizeof(double));
+    // for (i = 0; i < n; i++)
+    // {
+    //     r[i] = y[i] - fit->ty[i];
+    // }
     double *r_squared = malloc(n * sizeof(double));
     for (i = 0; i < n; i++)
     {
+        r_squared[i] = y[i] - fit->ty[i];
         r_squared[i] = r_squared[i] * r_squared[i];
     }
     double cv_crit_div = 1 - (df_offset + penalty * df) / (double)n;
     double cv_crit = weighted_avg(n, r_squared, w) / (cv_crit_div * cv_crit_div);
+    free(r_squared);
 
     model->x = ux;               // double *x;          n
     model->y = fit->ty;          // double *y;          n
@@ -1744,6 +1776,8 @@ double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len
             malloc(n * sizeof(double)),
             (int)deriv);
 
+        free(bvalus_xs);
+
         j = 0;
         for (i = 0; i < x_len; i++)
         {
@@ -1753,6 +1787,9 @@ double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len
                 j += 1;
             }
         }
+
+        free(interp);
+        free(bvalus_result);
     }
 
     if (n < x_len)
@@ -1813,5 +1850,8 @@ double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len
         for (i = 0; i < x_len; i++)
             y[i] /= pow(model->fit_range, deriv);
 
+    free(extrap);
+    free(extrap_left);
+    free(extrap_right);
     return y;
 }

@@ -51,11 +51,13 @@ void precision_test(dataframe_t *output_df, char *expected_output_filename)
         if (fabs(output_df->mims_data[i] - r_output[i]) > 0.0001)
         {
             printf("Failed precision test\n");
+            free(r_output);
             return;
         }
     }
 
     printf("Passed precision test\n");
+    free(r_output);
     return;
 }
 
@@ -103,8 +105,9 @@ void before_after_df_test(char *input_filename, char *expected_output_filename)
         middle_df->z[i] = input_df->z[i + 1];
     }
 
-    dataframe_t *mims_data = custom_mims_unit(middle_df, -8, 8, 1, minute, 0.03, 0.05, 0.6, 0.2,
-                                              5.0, 1, before_df, after_df);
+    dataframe_t *mims_data = custom_mims_unit_before_after_dataframe(middle_df, -8, 8, 1, minute,
+                                                                     0.03, 0.05, 0.6, 0.2, 5.0, 1,
+                                                                     before_df, after_df);
     precision_test(mims_data, expected_output_filename);
     free_dataframe(input_df);
     free_dataframe(before_df);
@@ -164,6 +167,7 @@ void test_sm_spline()
 
     smooth_spline_model_t *model = sm_spline_coef(n, over_t, over_values, n, weights, spar);
     double *results = predict_smooth_spline(model, over_t, n, 0);
+    free_smooth_spline_model(model);
 
     for (int i = 0; i < n; i++)
     {
@@ -174,7 +178,6 @@ void test_sm_spline()
         }
     }
 
-    free_smooth_spline_model(model);
     free(results);
     printf("Pased test_sm_spline\n");
 }
