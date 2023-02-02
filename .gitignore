@@ -1,5 +1,7 @@
 build/*
 data/*.py
+data/test_2
+data/aditya_sleep
 
 CMakeFiles/*
 src/CMakeFiles/*
@@ -7,9 +9,9 @@ src/mims_unit
 *.cmake
 
 *.a
-*.csv
 *.bin
 *.d
 .DS_Store
 *.log
 *.o
+.vscode

@@ -1,4 +1,7 @@
 #include "mims_unit.h"
+#include "config.h"
+#include <time.h>
+#include "mims_helper.h"
 
 dataframe_t *mims_unit_from_filename(char *input_filename,
                                      int8_t dyanmic_range_low, int8_t dyanmic_range_high,

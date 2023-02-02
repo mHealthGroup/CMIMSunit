@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 // uint8_t (255)
 // uint16_t (65535)
@@ -35,15 +36,19 @@ typedef enum time_unit
 #include "mims_filter.h"
 #include "mims_helper.h"
 
+#ifndef max
 #define max(a, b) \
     ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
+#endif
 
+#ifndef min
 #define min(a, b) \
     ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
+#endif
 
 dataframe_t *mims_unit_from_filename(char *input_filename,
                                      int8_t dyanmic_range_low, int8_t dyanmic_range_high,
