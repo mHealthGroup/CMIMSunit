@@ -5,9 +5,9 @@
 #include "mims_extrapolate.h"
 #include "mims_helper.h"
 
-static values_dataframe_t *extrapolate_interpolate(uint32_t n, double *oversampled_float_timestamps, double *values,
-                                                   double *marker, uint32_t points_ex_n, values_dataframe_t *points_ex,
-                                                   uint16_t sampling_rate, float confident)
+static values_dataframe_t *extrapolate_interpolate(const uint32_t n, double *oversampled_float_timestamps, double *values,
+                                                   const double *marker, const uint32_t points_ex_n, const values_dataframe_t *points_ex,
+                                                   const uint16_t sampling_rate, const float confident)
 {
   uint32_t length_t_mark = 0;
   for (uint32_t i = 0; i < n; i++)
@@ -112,7 +112,7 @@ static values_dataframe_t *extrapolate_interpolate(uint32_t n, double *oversampl
   return dat_df;
 }
 
-static edges_t *extrapolate_edges(uint32_t n, double *marker, float confident, double sampling_rate)
+static edges_t *extrapolate_edges(const uint32_t n, const double *marker, const float confident, const double sampling_rate)
 {
   double *marker_diff_left = malloc(n * sizeof(double));
   double *marker_diff_right = malloc(n * sizeof(double));
@@ -363,7 +363,7 @@ static edges_t *extrapolate_edges(uint32_t n, double *marker, float confident, d
   return edges;
 }
 
-static edges_t *extrapolate_neighbor(uint32_t n, double *marker, double sampling_rate, float k, float confident)
+static edges_t *extrapolate_neighbor(const uint32_t n, const double *marker, const double sampling_rate, const float k, const float confident)
 {
   uint32_t n_neighbor = (uint32_t)(k * sampling_rate);
   edges_t *edges = extrapolate_edges(n, marker, confident, sampling_rate);
@@ -385,9 +385,9 @@ static edges_t *extrapolate_neighbor(uint32_t n, double *marker, double sampling
   return edges;
 }
 
-static smooth_spline_model_t *fit_weighted(uint32_t n, double *oversampled_float_timestamps, double *values,
-                                           double *marker, uint32_t start, uint32_t end, float spar,
-                                           uint16_t sampling_rate, float k)
+static smooth_spline_model_t *fit_weighted(const uint32_t n, double *oversampled_float_timestamps, double *values,
+                                           const double *marker, const uint32_t start, const uint32_t end, const float spar,
+                                           const uint16_t sampling_rate, const float k)
 {
   uint16_t n_over = k * sampling_rate;
 
@@ -415,9 +415,9 @@ static smooth_spline_model_t *fit_weighted(uint32_t n, double *oversampled_float
   return sm_spline_coef(n_over, over_t, over_value, n_over, weight, spar);
 }
 
-static values_dataframe_t *extrapolate_fit(uint32_t n, double *oversampled_float_timestamps, double *values,
-                                           edges_t *neighbors, double *marker, double spar, uint16_t sampling_rate,
-                                           double k)
+static values_dataframe_t *extrapolate_fit(const uint32_t n, double *oversampled_float_timestamps, double *values,
+                                           const edges_t *neighbors, const double *marker, const double spar, const uint16_t sampling_rate,
+                                           const double k)
 {
   // assuming neighbors.n_left == neighbors.n_right
   double *middle_ts = malloc(neighbors->n_left * sizeof(double));
@@ -488,7 +488,7 @@ static double optimize_gamma(double value)
   return result;
 }
 
-static double *mark_gamma(uint32_t n, double *timestamps, double *values, int8_t range_low, int8_t range_high,
+static double *mark_gamma(const uint32_t n, double *timestamps, double *values, const int8_t range_low, const int8_t range_high,
                           float noise_sd)
 {
   double *marker = calloc(n, sizeof(double));
@@ -509,10 +509,11 @@ static double *mark_gamma(uint32_t n, double *timestamps, double *values, int8_t
   return marker;
 }
 
-static values_dataframe_t *extrapolate_single_col(uint32_t n, double *timestamps, double *values,
-                                                  int8_t r_low, int8_t r_high, float noise_level, float k, float spar)
+static values_dataframe_t *extrapolate_single_col(const uint32_t n, double *timestamps,
+                                                  double *values, const int8_t r_low,
+                                                  const int8_t r_high, const float noise_level,
+                                                  const float k, const float spar)
 {
-
   uint32_t oversampled_float_timestamps_n = sequence_length(timestamps[0], timestamps[n - 1], 0.01);
   double *oversampled_float_timestamps = sequence(timestamps[0], timestamps[n - 1], 0.01);
 
@@ -561,11 +562,15 @@ static values_dataframe_t *extrapolate_single_col(uint32_t n, double *timestamps
   return dat_interp;
 }
 
-dataframe_t *extrapolate(dataframe_t *df, int8_t r_low, int8_t r_high, float noise_level, float k, float spar)
+dataframe_t *extrapolate(const dataframe_t *df, const int8_t r_low, const int8_t r_high,
+                         const float noise_level, const float k, const float spar)
 {
-  values_dataframe_t *x_col = extrapolate_single_col(df->size, df->timestamps, df->x, r_low, r_high, noise_level, k, spar);
-  values_dataframe_t *y_col = extrapolate_single_col(df->size, df->timestamps, df->y, r_low, r_high, noise_level, k, spar);
-  values_dataframe_t *z_col = extrapolate_single_col(df->size, df->timestamps, df->z, r_low, r_high, noise_level, k, spar);
+  values_dataframe_t *x_col = extrapolate_single_col(df->size, df->timestamps, df->x, r_low, r_high,
+                                                     noise_level, k, spar);
+  values_dataframe_t *y_col = extrapolate_single_col(df->size, df->timestamps, df->y, r_low, r_high,
+                                                     noise_level, k, spar);
+  values_dataframe_t *z_col = extrapolate_single_col(df->size, df->timestamps, df->z, r_low, r_high,
+                                                     noise_level, k, spar);
 
   dataframe_t *result = create_dataframe(
       x_col->size,

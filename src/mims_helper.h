@@ -6,20 +6,23 @@
 #include <math.h>
 #include <stdlib.h>
 
-uint32_t parse_epoch_string(uint16_t break_size, time_unit_t time_unit, uint16_t sampling_rate);
-uint16_t get_sampling_rate(dataframe_t *dataframe);
-void segment_data(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit, double start_time);
+uint32_t parse_epoch_string(const uint16_t break_size, const time_unit_t time_unit,
+                            const uint16_t sampling_rate);
+uint16_t get_sampling_rate(const dataframe_t *dataframe);
+void segment_data(dataframe_t *dataframe, const uint16_t break_size,
+                  const time_unit_t time_unit, const double start_time);
 
-uint32_t sequence_length(double start, double stop, double step);
-double *sequence(double start, double stop, double step);
-double *linspace(double start, double stop, uint32_t n);
+uint32_t sequence_length(const double start, const double stop, const double step);
+double *sequence(const double start, const double stop, const double step);
+double *linspace(const double start, const double stop, const uint32_t n);
 
-int count_lines(char *filename);
-dataframe_t *read_csv(char *filename);
+int count_lines(const char *filename);
+dataframe_t *read_csv(const char *filename);
 
-dataframe_t *create_dataframe(uint32_t size, double *timestamps, double *x, double *y, double *z,
-                              uint32_t n_segments, uint32_t *segments, double *mims_data);
+dataframe_t *create_dataframe(uint32_t size, double *timestamps, double *x,
+                              double *y, double *z, uint32_t n_segments,
+                              uint32_t *segments, double *mims_data);
 void free_dataframe(dataframe_t *df);
-dataframe_t *concat_dataframes(dataframe_t *df_1, dataframe_t *df_2);
+dataframe_t *concat_dataframes(const dataframe_t *df_1, const dataframe_t *df_2);
 
 #endif // _HELPER_H_

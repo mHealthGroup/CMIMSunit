@@ -13,7 +13,8 @@ typedef struct
     double *d;
 } Z_struct_t;
 
-static void natural_spline(int n, double *x, double *y, double *b, double *c, double *d)
+static void natural_spline(const int n, const double *x, const double *y, double *b,
+                           double *c, double *d)
 {
     if (n < 2)
         return;
@@ -86,7 +87,8 @@ static void natural_spline(int n, double *x, double *y, double *b, double *c, do
     return;
 }
 
-static void fmm_spline(int n, double *x, double *y, double *b, double *c, double *d)
+static void fmm_spline(const int n, const double *x, const double *y, double *b,
+                       double *c, double *d)
 {
     /* Adjustment for 1-based arrays */
     x--;
@@ -170,7 +172,7 @@ static void fmm_spline(int n, double *x, double *y, double *b, double *c, double
     return;
 }
 
-static void spline_coef(int method, int n, double *x, double *y,
+static void spline_coef(const int method, const int n, const double *x, const double *y,
                         double *b, double *c, double *d)
 {
     switch (method)
@@ -190,7 +192,8 @@ static void spline_coef(int method, int n, double *x, double *y,
     }
 }
 
-static Z_struct_t *SplineCoef(int method, int n, double *x, int m, double *y)
+static Z_struct_t *SplineCoef(const int method, const int n, double *x, const int m,
+                              double *y)
 {
     double *b = malloc(n * sizeof(double));
     double *c = malloc(n * sizeof(double));
@@ -214,8 +217,9 @@ static Z_struct_t *SplineCoef(int method, int n, double *x, int m, double *y)
     return ans;
 }
 
-static void spline_eval(int method, int nu, double *u, double *v,
-                        int n, double *x, double *y, double *b, double *c, double *d)
+static void spline_eval(const int method, const int nu, const double *u, double *v,
+                        const int n, const double *x, const double *y, const double *b,
+                        const double *c, const double *d)
 {
     /* Evaluate  v[l] := spline(u[l], ...),	    l = 1,..,nu, i.e. 0:(nu-1)
      * Nodes x[i], coef (y[i]; b[i],c[i],d[i]); i = 1,..,n , i.e. 0:(*n-1)
@@ -267,7 +271,7 @@ static void spline_eval(int method, int nu, double *u, double *v,
     }
 }
 
-static double *SplineEval(int nu, double *xout, Z_struct_t *z)
+static double *SplineEval(const int nu, double *xout, Z_struct_t *z)
 {
     int nx = z->n;
 
@@ -278,8 +282,8 @@ static double *SplineEval(int nu, double *xout, Z_struct_t *z)
 }
 
 // Method 1: periodic (unimplemented because unused), 2: natural, 3: fmm
-double *Spline(int x_len, double *x, int y_len, double *y,
-               int xout_len, double *xout, int method)
+double *Spline(const int x_len, double *x, const int y_len, double *y,
+               const int xout_len, double *xout, const int method)
 {
     Z_struct_t *z = SplineCoef(method, x_len, x, y_len, y);
     double *yout = SplineEval(xout_len, xout, z);

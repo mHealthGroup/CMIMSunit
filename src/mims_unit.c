@@ -1,14 +1,14 @@
 #include "mims_unit.h"
-#include "config.h"
+// #include "config.h"
 #include <time.h>
 #include "mims_helper.h"
 
-dataframe_t *mims_unit_from_filename(char *input_filename,
-                                     int8_t dyanmic_range_low, int8_t dyanmic_range_high,
-                                     uint16_t break_size, time_unit_t time_unit,
-                                     float noise_level, float k, float spar,
-                                     float cutoff_low, float cutoff_high,
-                                     uint8_t allow_truncation)
+dataframe_t *mims_unit_from_filename(const char *input_filename,
+                                     const int8_t dyanmic_range_low, const int8_t dyanmic_range_high,
+                                     const uint16_t break_size, const time_unit_t time_unit,
+                                     const float noise_level, const float k, const float spar,
+                                     const float cutoff_low, const float cutoff_high,
+                                     const uint8_t allow_truncation)
 {
   dataframe_t *dataframe = read_csv(input_filename);
   dataframe_t *output = custom_mims_unit(dataframe,
@@ -22,11 +22,11 @@ dataframe_t *mims_unit_from_filename(char *input_filename,
 }
 
 dataframe_t *mims_unit(dataframe_t *dataframe,
-                       int8_t dyanmic_range_low, int8_t dyanmic_range_high,
-                       uint16_t break_size, time_unit_t time_unit,
-                       float noise_level, float k, float spar,
-                       float cutoff_low, float cutoff_high,
-                       uint8_t allow_truncation)
+                       const int8_t dyanmic_range_low, const int8_t dyanmic_range_high,
+                       const uint16_t break_size, const time_unit_t time_unit,
+                       const float noise_level, const float k, const float spar,
+                       const float cutoff_low, const float cutoff_high,
+                       const uint8_t allow_truncation)
 {
   return custom_mims_unit(dataframe,
                           dyanmic_range_low, dyanmic_range_high,
@@ -37,12 +37,12 @@ dataframe_t *mims_unit(dataframe_t *dataframe,
 }
 
 dataframe_t *custom_mims_unit_before_after_dataframe(dataframe_t *dataframe,
-                                                     int8_t dyanmic_range_low, int8_t dyanmic_range_high,
-                                                     uint16_t break_size, time_unit_t time_unit,
-                                                     float noise_level, float k, float spar,
-                                                     float cutoff_low, float cutoff_high,
-                                                     uint8_t allow_truncation,
-                                                     dataframe_t *before_df, dataframe_t *after_df)
+                                                     const int8_t dyanmic_range_low, const int8_t dyanmic_range_high,
+                                                     const uint16_t break_size, const time_unit_t time_unit,
+                                                     const float noise_level, const float k, const float spar,
+                                                     const float cutoff_low, const float cutoff_high,
+                                                     const uint8_t allow_truncation,
+                                                     const dataframe_t *before_df, const dataframe_t *after_df)
 {
   if (before_df)
     dataframe = concat_dataframes(before_df, dataframe);
@@ -65,12 +65,12 @@ dataframe_t *custom_mims_unit_before_after_dataframe(dataframe_t *dataframe,
   return output;
 }
 
-dataframe_t *custom_mims_unit(dataframe_t *dataframe,
-                              int8_t dyanmic_range_low, int8_t dyanmic_range_high,
-                              uint16_t break_size, time_unit_t time_unit,
-                              float noise_level, float k, float spar,
-                              float cutoff_low, float cutoff_high,
-                              uint8_t allow_truncation)
+dataframe_t *custom_mims_unit(const dataframe_t *dataframe,
+                              const int8_t dyanmic_range_low, const int8_t dyanmic_range_high,
+                              const uint16_t break_size, const time_unit_t time_unit,
+                              const float noise_level, const float k, const float spar,
+                              const float cutoff_low, const float cutoff_high,
+                              const uint8_t allow_truncation)
 {
   dataframe_t *resampled_data = extrapolate(dataframe, dyanmic_range_low, dyanmic_range_high,
                                             noise_level, k, spar);
