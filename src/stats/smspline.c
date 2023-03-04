@@ -11,7 +11,7 @@ typedef struct
     uint8_t trace;
 } contr_sp_t;
 
-static double iqr(int n, double *x)
+static double iqr(const int n, const double *x)
 {
     float index[2] = {1 + (n - 1) * 0.25, 1 + (n - 1) * 0.75};
     int lo[2] = {(int)floor(index[0]), (int)floor(index[1])};
@@ -1429,32 +1429,8 @@ static double *bvalus(int n, double *knot, double *coef, int nk, double *x, doub
     return s;
 }
 
-void free_smooth_spline_model(smooth_spline_model_t *model)
-{
-    // free(model->x);          // Shouldn't free sm_spline_coef inputs
-    free(model->y);
-    // free(model->w);          // Shouldn't free sm_spline_coef inputs
-    free(model->yin);
-    // free(model->data_x);     // Shouldn't free sm_spline_coef inputs
-    // free(model->data_y);     // Shouldn't free sm_spline_coef inputs
-    // free(model->data_w);     // Shouldn't free sm_spline_coef inputs
-    free(model->fit_knot);
-
-    // free fit_t pointers
-    fit_t *fit = model->fit;
-    free(fit->coef);
-    free(fit->lev);
-    free(fit->parms);
-    free(fit->crit);
-    free(fit->iparms);
-    free(fit->ier);
-    free(fit->scrtch);
-
-    free(fit);
-    free(model);
-}
-
-smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar)
+smooth_spline_model_t *sm_spline_coef(const int n, double *x, double *y, const int w_len, double *w,
+                                      double spar)
 {
     int i;
     double tol = 1e-6 * iqr(n, x);
@@ -1724,7 +1700,8 @@ smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, do
     return model;
 }
 
-double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len, int deriv)
+double *predict_smooth_spline(const smooth_spline_model_t *model, const double *x, const int x_len,
+                              const int deriv)
 {
     int i;
     double *xs = malloc(x_len * sizeof(double));
@@ -1855,4 +1832,29 @@ double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len
     free(extrap_left);
     free(extrap_right);
     return y;
+}
+
+void free_smooth_spline_model(smooth_spline_model_t *model)
+{
+    // free(model->x);          // Shouldn't free sm_spline_coef inputs
+    free(model->y);
+    // free(model->w);          // Shouldn't free sm_spline_coef inputs
+    free(model->yin);
+    // free(model->data_x);     // Shouldn't free sm_spline_coef inputs
+    // free(model->data_y);     // Shouldn't free sm_spline_coef inputs
+    // free(model->data_w);     // Shouldn't free sm_spline_coef inputs
+    free(model->fit_knot);
+
+    // free fit_t pointers
+    fit_t *fit = model->fit;
+    free(fit->coef);
+    free(fit->lev);
+    free(fit->parms);
+    free(fit->crit);
+    free(fit->iparms);
+    free(fit->ier);
+    free(fit->scrtch);
+
+    free(fit);
+    free(model);
 }

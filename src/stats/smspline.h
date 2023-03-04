@@ -47,8 +47,10 @@ typedef struct
     double *fit_coef;
 } smooth_spline_model_t;
 
-smooth_spline_model_t *sm_spline_coef(int n, double *x, double *y, int w_len, double *w, double spar);
-double *predict_smooth_spline(smooth_spline_model_t *model, double *x, int x_len, int deriv);
+smooth_spline_model_t *sm_spline_coef(const int n, double *x, double *y, const int w_len, double *w,
+                                      double spar);
+double *predict_smooth_spline(const smooth_spline_model_t *model, const double *x, const int x_len,
+                              const int deriv);
 void free_smooth_spline_model(smooth_spline_model_t *model);
 
 #endif // _STATS_SMSPLINE_H_
