@@ -15,7 +15,7 @@ typedef enum angle_unit
     radians
 } angle_unit_t;
 
-dataframe_t aggregate(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit,
-                      uint8_t rectify, double start_time);
+dataframe_t *aggregate(dataframe_t *dataframe, const uint16_t break_size, const time_unit_t time_unit,
+                       const uint8_t rectify, const double start_time);
 
 #endif // _AGGREGATE_H_

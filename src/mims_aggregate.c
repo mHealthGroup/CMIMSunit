@@ -1,9 +1,9 @@
 #include "mims_aggregate.h"
 
 // note: run integrate_for_mims on each column (x, y, z) separately
-static void integrate_for_mims(double *result, double *new_timestamps, uint32_t n_segments,
-                               uint32_t *segments, uint32_t n, double *float_timestamps, double *values,
-                               uint32_t n_threshold, uint8_t rectify)
+static void integrate_for_mims(double *result, double *new_timestamps, const uint32_t n_segments,
+                               uint32_t *segments, const uint32_t n, double *float_timestamps, double *values,
+                               const uint32_t n_threshold, const uint8_t rectify)
 {
   uint32_t segment_start_i, segment_end_i, segment_length, max_values, result_i;
 
@@ -48,8 +48,8 @@ static void integrate_for_mims(double *result, double *new_timestamps, uint32_t 
   return;
 }
 
-dataframe_t aggregate(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit,
-                      uint8_t rectify, double start_time)
+dataframe_t *aggregate(dataframe_t *dataframe, const uint16_t break_size, const time_unit_t time_unit,
+                       const uint8_t rectify, const double start_time)
 {
   // parse input argument epoch
   segment_data(dataframe, break_size, time_unit, start_time);
@@ -71,12 +71,13 @@ dataframe_t aggregate(dataframe_t *dataframe, uint16_t break_size, time_unit_t t
   integrate_for_mims(z_results, new_timestamps, dataframe->n_segments, dataframe->segments,
                      dataframe->size, dataframe->timestamps, dataframe->z, n_threshold, 1);
 
-  dataframe_t new_dataframe;
-  new_dataframe.size = dataframe->n_segments;
-  new_dataframe.timestamps = new_timestamps;
-  new_dataframe.x = x_results;
-  new_dataframe.y = y_results;
-  new_dataframe.z = z_results;
+  dataframe_t *new_dataframe = create_dataframe(
+      dataframe->n_segments,
+      new_timestamps,
+      x_results,
+      y_results,
+      z_results,
+      0, NULL, NULL);
 
   return new_dataframe;
 }

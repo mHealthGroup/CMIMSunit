@@ -7,6 +7,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-double *sum_up(dataframe_t *dataframe);
+double *sum_up(const dataframe_t *dataframe);
 
 #endif // _COMBINE_AXES_H_

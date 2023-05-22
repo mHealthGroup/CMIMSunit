@@ -6,6 +6,6 @@
 #include "mims_unit.h"
 #include "signal/filter.h"
 
-dataframe_t iir(dataframe_t *df, uint16_t sampling_rate, double *cutoff_freq, uint8_t order);
+dataframe_t *iir(dataframe_t *df, const uint16_t sampling_rate, double *cutoff_freq, const uint8_t order);
 
 #endif // _FILTER_H_

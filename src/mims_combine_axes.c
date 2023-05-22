@@ -1,6 +1,6 @@
 #include "mims_combine_axes.h"
 
-double *sum_up(dataframe_t *dataframe)
+double *sum_up(const dataframe_t *dataframe)
 {
   uint32_t n = dataframe->size;
   double *output = malloc(n * sizeof(double));

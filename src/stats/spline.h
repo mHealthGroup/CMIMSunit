@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-double *Spline(int x_len, double *x, int y_len, double *y,
-               int xout_len, double *xout, int method);
+double *Spline(const int x_len, double *x, const int y_len, double *y,
+               const int xout_len, double *xout, const int method);
 
 #endif // _STATS_SPLINE_H_

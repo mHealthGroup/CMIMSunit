@@ -94,6 +94,7 @@ static double *stats_filter(int n_x, double *x, int n_filt, double *filt,
             else
                 out[i] = 0;
         }
+        free(init);
 
         // y = rec_filter(x, filt, out)[-ind]
         rfilter(n_x, x, n_filt, filt, out); // mutates "out"
@@ -101,6 +102,8 @@ static double *stats_filter(int n_x, double *x, int n_filt, double *filt,
         y = malloc(n_y * sizeof(double));
         for (i = 0; i < n_y; i++)
             y[i] = out[i + n_filt];
+
+        free(out);
     }
     return y;
 }
@@ -123,6 +126,8 @@ double *signal_filter(int n_filt, double *filt, int n_a, double *a, int n_x, dou
             filter_coefs[i] = filt[i] / a[0];
         }
         double *x1 = stats_filter(n_concat, concat, n_filt, filter_coefs, 0, 1);
+        free(filter_coefs);
+        free(concat);
         n_output = n_concat;
         for (i = 0; i < n_concat; i++)
             if (isnan(x1[i]))
@@ -140,6 +145,7 @@ double *signal_filter(int n_filt, double *filt, int n_a, double *a, int n_x, dou
             }
             i++;
         }
+        free(x1);
     }
 
     if (n_a >= 2)
@@ -147,7 +153,10 @@ double *signal_filter(int n_filt, double *filt, int n_a, double *a, int n_x, dou
         filter_coefs = malloc((n_a - 1) * sizeof(double));
         for (i = 1; i < n_a; i++)
             filter_coefs[i - 1] = (-1 * a[i]) / a[0];
-        output = stats_filter(n_output, output, n_a - 1, filter_coefs, 1, -1);
+        double *old_output = output;
+        output = stats_filter(n_output, old_output, n_a - 1, filter_coefs, 1, -1);
+        free(filter_coefs);
+        free(old_output);
     }
 
     return output;

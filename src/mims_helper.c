@@ -1,7 +1,10 @@
 #include "mims_helper.h"
 #include <string.h> // strtok
 
-static uint32_t get_break_size_in_seconds(uint16_t break_size, time_unit_t time_unit)
+#define LINE_COUNT_BUFFER_SIZE 65535
+#define CSV_LINE_BUFFER_SIZE 128
+
+static uint32_t get_break_size_in_seconds(const uint16_t break_size, const time_unit_t time_unit)
 {
     uint32_t factor;
     switch (time_unit)
@@ -25,7 +28,7 @@ static uint32_t get_break_size_in_seconds(uint16_t break_size, time_unit_t time_
 }
 
 static void compute_time_segments(
-    dataframe_t *dataframe, double start_time, uint32_t break_size_in_seconds)
+    dataframe_t *dataframe, const double start_time, const uint32_t break_size_in_seconds)
 {
     dataframe->n_segments = (uint32_t)((dataframe->timestamps[dataframe->size - 1] - start_time) / (double)break_size_in_seconds) + 1;
     dataframe->segments = malloc(dataframe->n_segments * sizeof(uint32_t));
@@ -44,14 +47,15 @@ static void compute_time_segments(
     return;
 }
 
-uint32_t parse_epoch_string(uint16_t break_size, time_unit_t time_unit, uint16_t sampling_rate)
+uint32_t parse_epoch_string(const uint16_t break_size, const time_unit_t time_unit,
+                            const uint16_t sampling_rate)
 {
     uint32_t num_seconds_in_epoch = get_break_size_in_seconds(break_size, time_unit);
     uint32_t num_samples = num_seconds_in_epoch * sampling_rate;
     return num_samples;
 }
 
-uint16_t get_sampling_rate(dataframe_t *dataframe)
+uint16_t get_sampling_rate(const dataframe_t *dataframe)
 {
     uint32_t duration_in_seconds = (uint32_t)(dataframe->timestamps[dataframe->size - 1] - dataframe->timestamps[0]);
     uint16_t sampling_rate = dataframe->size / duration_in_seconds;
@@ -59,19 +63,20 @@ uint16_t get_sampling_rate(dataframe_t *dataframe)
 }
 
 // Segments the input sensor dataframe into epoch windows with length specified in break_size.
-void segment_data(dataframe_t *dataframe, uint16_t break_size, time_unit_t time_unit, double start_time)
+void segment_data(dataframe_t *dataframe, const uint16_t break_size,
+                  const time_unit_t time_unit, const double start_time)
 {
     uint32_t break_size_in_seconds = get_break_size_in_seconds(break_size, time_unit);
     compute_time_segments(dataframe, start_time, break_size_in_seconds);
     return;
 }
 
-uint32_t sequence_length(double start, double stop, double step)
+uint32_t sequence_length(const double start, const double stop, const double step)
 {
     return (uint32_t)(((stop - start) / step) + pow(1, -10));
 }
 
-double *sequence(double start, double stop, double step)
+double *sequence(const double start, const double stop, const double step)
 {
     uint32_t sequence_len = sequence_length(start, stop, step);
     double *sequence = malloc(sequence_len * sizeof(double));
@@ -85,7 +90,7 @@ double *sequence(double start, double stop, double step)
     return sequence;
 }
 
-double *linspace(double start, double stop, uint32_t n)
+double *linspace(const double start, const double stop, const uint32_t n)
 {
     double *sequence = malloc(n * sizeof(double));
     double step = (stop - start) / (double)(n - 1.0);
@@ -99,39 +104,7 @@ double *linspace(double start, double stop, uint32_t n)
     return sequence;
 }
 
-dataframe_t concat_dataframes(dataframe_t *df_1, dataframe_t *df_2)
-{
-    uint32_t n = df_1->size + df_2->size;
-    dataframe_t output_df = {
-        .size = n,
-        .timestamps = malloc(n * sizeof(double)),
-        .x = malloc(n * sizeof(double)),
-        .y = malloc(n * sizeof(double)),
-        .z = malloc(n * sizeof(double))};
-
-    for (int i = 0; i < n; i++)
-    {
-        if (i < df_1->size)
-        {
-            output_df.timestamps[i] = df_1->timestamps[i];
-            output_df.x[i] = df_1->x[i];
-            output_df.y[i] = df_1->y[i];
-            output_df.z[i] = df_1->z[i];
-        }
-        else
-        {
-            output_df.timestamps[i] = df_2->timestamps[i - df_1->size];
-            output_df.x[i] = df_2->x[i - df_1->size];
-            output_df.y[i] = df_2->y[i - df_1->size];
-            output_df.z[i] = df_2->z[i - df_1->size];
-        }
-    }
-
-    return output_df;
-}
-
-#define LINE_COUNT_BUFFER_SIZE 65535
-int count_lines(char *filename)
+int count_lines(const char *filename)
 {
     FILE *file = fopen(filename, "r");
     char buf[LINE_COUNT_BUFFER_SIZE];
@@ -158,18 +131,18 @@ int count_lines(char *filename)
     return counter;
 }
 
-#define CSV_LINE_BUFFER_SIZE 128
-dataframe_t read_csv(char *filename)
+dataframe_t *read_csv(const char *filename)
 {
     int n = count_lines(filename) - 1; // Exclude header row
     FILE *file = fopen(filename, "r");
     // rewind(file);
-    dataframe_t df = {
-        .size = n,
-        .timestamps = malloc(n * sizeof(double)),
-        .x = malloc(n * sizeof(double)),
-        .y = malloc(n * sizeof(double)),
-        .z = malloc(n * sizeof(double))};
+    dataframe_t *df = create_dataframe(
+        n,
+        malloc(n * sizeof(double)),
+        malloc(n * sizeof(double)),
+        malloc(n * sizeof(double)),
+        malloc(n * sizeof(double)),
+        0, NULL, NULL);
 
     char line_buffer[CSV_LINE_BUFFER_SIZE];
     char *token;
@@ -181,15 +154,68 @@ dataframe_t read_csv(char *filename)
             continue; // skip first line
 
         token = strtok(line_buffer, ",");
-        df.timestamps[i] = atof(token);
+        df->timestamps[i] = atof(token);
         token = strtok(NULL, ",");
-        df.x[i] = atof(token);
+        df->x[i] = atof(token);
         token = strtok(NULL, ",");
-        df.y[i] = atof(token);
+        df->y[i] = atof(token);
         token = strtok(NULL, ",");
-        df.z[i] = atof(token);
+        df->z[i] = atof(token);
     }
 
     fclose(file);
     return df;
+}
+
+dataframe_t *create_dataframe(uint32_t size, double *timestamps, double *x,
+                              double *y, double *z, uint32_t n_segments,
+                              uint32_t *segments, double *mims_data)
+{
+    dataframe_t *dataframe = malloc(sizeof(dataframe_t));
+
+    dataframe->size = size;
+    dataframe->timestamps = timestamps;
+    dataframe->x = x;
+    dataframe->y = y;
+    dataframe->z = z;
+    dataframe->n_segments = n_segments;
+    dataframe->segments = segments;
+    dataframe->mims_data = mims_data;
+
+    return dataframe;
+}
+
+void free_dataframe(dataframe_t *df)
+{
+    free(df->timestamps);
+    free(df->x);
+    free(df->y);
+    free(df->z);
+    free(df->segments);
+    free(df->mims_data);
+    free(df);
+
+    return;
+}
+
+dataframe_t *concat_dataframes(const dataframe_t *df_1, const dataframe_t *df_2)
+{
+    uint32_t n = df_1->size + df_2->size;
+    double *timestamps = malloc(n * sizeof(double));
+    double *x = malloc(n * sizeof(double));
+    double *y = malloc(n * sizeof(double));
+    double *z = malloc(n * sizeof(double));
+
+    memcpy(timestamps, df_1->timestamps, df_1->size * sizeof(*df_1->timestamps));
+    memcpy(x, df_1->x, df_1->size * sizeof(*df_1->x));
+    memcpy(y, df_1->y, df_1->size * sizeof(*df_1->y));
+    memcpy(z, df_1->z, df_1->size * sizeof(*df_1->z));
+
+    memcpy(timestamps + df_1->size, df_2->timestamps, df_2->size * sizeof(*df_2->timestamps));
+    memcpy(x + df_1->size, df_2->x, df_2->size * sizeof(*df_2->x));
+    memcpy(y + df_1->size, df_2->y, df_2->size * sizeof(*df_2->y));
+    memcpy(z + df_1->size, df_2->z, df_2->size * sizeof(*df_2->z));
+
+    dataframe_t *output_df = create_dataframe(n, timestamps, x, y, z, 0, NULL, NULL);
+    return output_df;
 }
